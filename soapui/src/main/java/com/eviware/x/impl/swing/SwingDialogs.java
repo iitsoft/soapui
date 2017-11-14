@@ -1,21 +1,22 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.x.impl.swing;
 
+import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.support.DefaultHyperlinkListener;
 import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.components.ProgressDialog;
@@ -42,9 +43,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
-/**
- * @author Lars
- */
 public class SwingDialogs implements XDialogs {
     private Component parent;
     private JDialog extendedInfoDialog;
@@ -55,11 +53,19 @@ public class SwingDialogs implements XDialogs {
     }
 
     public void showErrorMessage(final String message) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
+        try {
+            if (SwingUtilities.isEventDispatchThread()) {
                 JOptionPane.showMessageDialog(parent, message, "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        JOptionPane.showMessageDialog(parent, message, "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                });
             }
-        });
+        } catch (Exception e) {
+            SoapUI.logError(e);
+        }
     }
 
     public boolean confirm(String question, String title) {
@@ -85,11 +91,19 @@ public class SwingDialogs implements XDialogs {
     }
 
     public void showInfoMessage(final String message, final String title) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
+        try {
+            if (SwingUtilities.isEventDispatchThread()) {
                 JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE);
+                    }
+                });
             }
-        });
+        } catch (Exception e) {
+            SoapUI.logError(e);
+        }
     }
 
     public Object prompt(String question, String title, Object[] objects) {
@@ -123,12 +137,20 @@ public class SwingDialogs implements XDialogs {
     }
 
     public void showExtendedInfo(final String title, final String description, final String content, final Dimension size) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                JPanel buttonBar = ButtonBarFactory.buildRightAlignedBar(new JButton(new OkAction("OK")));
+        try {
+            final JPanel buttonBar = ButtonBarFactory.buildRightAlignedBar(new JButton(new OkAction("OK")));
+            if (SwingUtilities.isEventDispatchThread()) {
                 showExtendedInfo(title, description, content, buttonBar, size);
+            } else {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        showExtendedInfo(title, description, content, buttonBar, size);
+                    }
+                });
             }
-        });
+        } catch (Exception e) {
+            SoapUI.logError(e);
+        }
     }
 
     private void showExtendedInfo(String title, String description, String content, JPanel buttonBar, Dimension size) {

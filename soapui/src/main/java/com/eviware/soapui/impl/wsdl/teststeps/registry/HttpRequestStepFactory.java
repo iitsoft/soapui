@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.teststeps.registry;
 
@@ -62,8 +62,8 @@ public class HttpRequestStepFactory extends WsdlTestStepFactory {
     private RestParamsTable paramsTable;
 
     public HttpRequestStepFactory() {
-        super(HTTPREQUEST_TYPE, "HTTP Test Request", "Submits a HTTP Request and validates its response",
-                "/http_request.gif");
+        super(HTTPREQUEST_TYPE, "HTTP Request", "Submits a HTTP Request and validates its response",
+                "/http_request_step.png");
     }
 
     public WsdlTestStep buildTestStep(WsdlTestCase testCase, TestStepConfig config, boolean forLoadTest) {
@@ -150,7 +150,7 @@ public class HttpRequestStepFactory extends WsdlTestStepFactory {
                 .getMethods());
     }
 
-    @AForm(name = "Form.Title", description = "Form.Description", helpUrl = HelpUrls.NEWRESTSERVICE_HELP_URL, icon = UISupport.TOOL_ICON_PATH)
+    @AForm(name = "Form.Title", description = "Form.Description", helpUrl = HelpUrls.HTTP_REQUEST_HELP_URL, icon = UISupport.TOOL_ICON_PATH)
     public interface Form {
         @AField(description = "Form.TestStepName.Description", type = AField.AFieldType.STRING)
         public final static String STEPNAME = messages.get("Form.TestStepName.Label");

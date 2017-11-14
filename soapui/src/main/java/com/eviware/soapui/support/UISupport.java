@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.support;
 
@@ -128,7 +128,7 @@ public class UISupport {
 
     public static final String DEFAULT_EDITOR_FONT = "Courier plain";
     public static final int DEFAULT_EDITOR_FONT_SIZE = 11;
-    public static final Color MAC_BACKGROUND_COLOR = new Color(229, 229, 229);
+    public static final Color MAC_BACKGROUND_COLOR = new Color(255, 255, 255);
     public static final Color MAC_PROGRESSBAR_BACKGROUND_COLOR = new Color(196, 196, 196);
     public static final Color MAC_PROGRESSBAR_MATTE_BORDER_COLOR = new Color(238, 238, 238);
     public static final Color MAC_PROGRESSBAR_LINE_BORDER_COLOR = new Color(166, 166, 166);
@@ -513,12 +513,7 @@ public class UISupport {
 
     public static JPanel createTabPanel(JTabbedPane tabs, boolean addBorder) {
         GradientPanel panel = new GradientPanel(new BorderLayout());
-
-        Color color = UIManager.getDefaults().getColor("Panel.background");
-        Color darker = color.darker();
-        panel.setForeground(new Color((color.getRed() + darker.getRed()) / 2,
-                (color.getGreen() + darker.getGreen()) / 2, (color.getBlue() + darker.getBlue()) / 2));
-
+        panel.setForeground(Color.WHITE);
         if (tabs.getTabPlacement() == JTabbedPane.LEFT || tabs.getTabPlacement() == JTabbedPane.RIGHT) {
             panel.setDirection(GradientPanel.VERTICAL);
         }
@@ -680,6 +675,7 @@ public class UISupport {
         toolbar.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.SINGLE);
         toolbar.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
         toolbar.setMinimumSize(new Dimension(20, 20));
+        toolbar.setBackground(Color.WHITE);
         return toolbar;
     }
 
@@ -691,6 +687,7 @@ public class UISupport {
         toolbar.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.SINGLE);
         toolbar.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         toolbar.setMinimumSize(new Dimension(20, 20));
+        toolbar.setBackground(Color.WHITE);
         return toolbar;
     }
 
@@ -1001,6 +998,10 @@ public class UISupport {
         double bottomUsableYCoordinateOnScreen = currentGraphicsConfiguration.getBounds().getMaxY()
                 - Toolkit.getDefaultToolkit().getScreenInsets(currentGraphicsConfiguration).bottom;
         return bottomYCoordinate <= bottomUsableYCoordinateOnScreen;
+    }
+
+    public static boolean isUsingConsoleDialogs() {
+        return dialogs instanceof ConsoleDialogs;
     }
 
     private static GraphicsConfiguration getGraphicsConfigurationForPosition(Point point) {

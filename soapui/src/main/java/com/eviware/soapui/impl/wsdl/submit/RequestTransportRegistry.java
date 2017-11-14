@@ -1,23 +1,41 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.submit;
 
 import com.eviware.soapui.SoapUI;
-import com.eviware.soapui.impl.wsdl.submit.filters.*;
+import com.eviware.soapui.impl.wsdl.submit.filters.EndpointRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.EndpointStrategyRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.GlobalHttpHeadersRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.HttpAuthenticationRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.HttpCompressionRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.HttpPackagingResponseFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.HttpSettingsRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.OAuth2RequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.PostPackagingRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.PropertyExpansionRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.RemoveEmptyContentRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.RestRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.SoapHeadersRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.StripWhitespacesRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.WsaRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.WsdlPackagingRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.WsrmRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.WssAuthenticationRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.filters.WssRequestFilter;
 import com.eviware.soapui.impl.wsdl.submit.transports.http.HttpClientRequestTransport;
 import com.eviware.soapui.impl.wsdl.submit.transports.jms.HermesJmsRequestTransport;
 import com.eviware.soapui.model.iface.SubmitContext;
@@ -66,7 +84,9 @@ public class RequestTransportRegistry {
         httpTransport.addRequestFilter(new WsrmRequestFilter());
         httpTransport.addRequestFilter(new WssRequestFilter());
         httpTransport.addRequestFilter(new OAuth2RequestFilter());
-        httpTransport.addRequestFilter( new GlobalHttpHeadersRequestFilter());
+        httpTransport.addRequestFilter(new GlobalHttpHeadersRequestFilter());
+
+        addListenerRequestFilters(httpTransport);
 
         for (RequestFilterFactory factory : filterFactories) {
             String protocol = factory.getProtocol();
@@ -94,6 +114,8 @@ public class RequestTransportRegistry {
         jmsTransport.addRequestFilter(new WsaRequestFilter());
         jmsTransport.addRequestFilter(new WssRequestFilter());
 
+        addListenerRequestFilters(jmsTransport);
+
         for (RequestFilterFactory factory : filterFactories) {
             if (factory.getProtocol().equals(JMS)) {
                 RequestFilter requestFilter = factory.createRequestFilter();
@@ -106,29 +128,27 @@ public class RequestTransportRegistry {
         transports.put(JMS, jmsTransport);
         initCustomTransports(filterFactories);
 
-        SoapUI.getFactoryRegistry().addFactoryRegistryListener( new SoapUIFactoryRegistryListener() {
+        SoapUI.getFactoryRegistry().addFactoryRegistryListener(new SoapUIFactoryRegistryListener() {
             @Override
             public void factoryAdded(Class<?> factoryType, Object factory) {
-                if( factory instanceof RequestTransportFactory ) {
+                if (factory instanceof RequestTransportFactory) {
                     RequestTransportFactory transportFactory = (RequestTransportFactory) factory;
-                    addTransport(transportFactory.getProtocol(),transportFactory.newRequestTransport());
+                    addTransport(transportFactory.getProtocol(), transportFactory.newRequestTransport());
                 }
-                if( factory instanceof RequestFilterFactory ) {
+                if (factory instanceof RequestFilterFactory) {
                     RequestFilterFactory requestFilterFactory = (RequestFilterFactory) factory;
 
                     RequestFilter filter = requestFilterFactory.createRequestFilter();
                     String protocol = requestFilterFactory.getProtocol();
 
-                    if( protocol.startsWith(HTTP))
-                    {
-                        RequestTransport transport = transports.get( HTTP );
-                        transport.insertRequestFilter( filter, wsdlPackagingRequestFilter );
-                    }
-                    else
-                    {
+                    if (protocol.startsWith(HTTP)) {
+                        RequestTransport transport = transports.get(HTTP);
+                        transport.insertRequestFilter(filter, wsdlPackagingRequestFilter);
+                    } else {
                         RequestTransport transport = transports.get(protocol);
-                        if( transport != null )
-                            transport.addRequestFilter( filter );
+                        if (transport != null) {
+                            transport.addRequestFilter(filter);
+                        }
                     }
 
                     addToCustomRequestFilters(protocol, filter);
@@ -137,12 +157,20 @@ public class RequestTransportRegistry {
 
             @Override
             public void factoryRemoved(Class<?> factoryType, Object factory) {
-               if( factory instanceof RequestTransportFactory )
-                   removeFactory((RequestTransportFactory) factory);
-               if( factory instanceof RequestFilterFactory )
-                   removeRequestFilterFactory((RequestFilterFactory) factory);
+                if (factory instanceof RequestTransportFactory) {
+                    removeFactory((RequestTransportFactory) factory);
+                }
+                if (factory instanceof RequestFilterFactory) {
+                    removeRequestFilterFactory((RequestFilterFactory) factory);
+                }
             }
         });
+    }
+
+    private static void addListenerRequestFilters(RequestTransport transport) {
+        for (RequestFilter filter : SoapUI.getListenerRegistry().getListeners(RequestFilter.class)) {
+            transport.addRequestFilter(filter);
+        }
     }
 
     private static void initCustomTransports(List<RequestFilterFactory> filterFactories) {
@@ -164,23 +192,20 @@ public class RequestTransportRegistry {
     }
 
     private static void addToCustomRequestFilters(String protocol, RequestFilter requestFilter) {
-        if( !addedCustomRequestFilters.containsKey(protocol))
-        {
-            addedCustomRequestFilters.put( protocol, new ArrayList<RequestFilter>());
+        if (!addedCustomRequestFilters.containsKey(protocol)) {
+            addedCustomRequestFilters.put(protocol, new ArrayList<RequestFilter>());
         }
 
-        addedCustomRequestFilters.get( protocol ).add( requestFilter );
+        addedCustomRequestFilters.get(protocol).add(requestFilter);
     }
 
-    public static void removeRequestFilterFactory( RequestFilterFactory factory )
-    {
+    public static void removeRequestFilterFactory(RequestFilterFactory factory) {
         String protocol = factory.getProtocol();
-        if( addedCustomRequestFilters.containsKey(protocol))
-        {
-            for( RequestFilter filter : addedCustomRequestFilters.get(protocol))
-            {
-                for( RequestTransport transport : transports.values())
-                    transport.removeRequestFilter( filter );
+        if (addedCustomRequestFilters.containsKey(protocol)) {
+            for (RequestFilter filter : addedCustomRequestFilters.get(protocol)) {
+                for (RequestTransport transport : transports.values()) {
+                    transport.removeRequestFilter(filter);
+                }
             }
 
             addedCustomRequestFilters.remove(protocol);

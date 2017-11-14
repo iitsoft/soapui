@@ -1,46 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.request.actions;
-
-import java.awt.Dimension;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Calendar;
-
-import javax.swing.SwingUtilities;
-
-import org.wsI.testing.x2003.x03.common.AddStyleSheet;
-import org.wsI.testing.x2003.x03.log.Environment;
-import org.wsI.testing.x2003.x03.log.HttpMessageEntry;
-import org.wsI.testing.x2003.x03.log.Implementation;
-import org.wsI.testing.x2003.x03.log.Log;
-import org.wsI.testing.x2003.x03.log.LogDocument;
-import org.wsI.testing.x2003.x03.log.MessageEntry;
-import org.wsI.testing.x2003.x03.log.Monitor;
-import org.wsI.testing.x2003.x03.log.NameVersionPair;
-import org.wsI.testing.x2003.x03.log.TcpMessageType;
-import org.wsI.testing.x2004.x07.analyzerConfig.AssertionResults;
-import org.wsI.testing.x2004.x07.analyzerConfig.Configuration;
-import org.wsI.testing.x2004.x07.analyzerConfig.ConfigurationDocument;
-import org.wsI.testing.x2004.x07.analyzerConfig.LogFile;
-import org.wsI.testing.x2004.x07.analyzerConfig.LogFile.CorrelationType;
-import org.wsI.testing.x2004.x07.analyzerConfig.ReportFile;
 
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.impl.wsdl.WsdlRequest;
@@ -58,6 +32,32 @@ import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.types.StringToStringMap;
 import com.eviware.soapui.support.types.StringToStringsMap;
 import com.eviware.soapui.ui.support.DefaultDesktopPanel;
+import org.apache.log4j.Logger;
+import org.wsI.testing.x2003.x03.analyzerConfig.AssertionResults;
+import org.wsI.testing.x2003.x03.analyzerConfig.Configuration;
+import org.wsI.testing.x2003.x03.analyzerConfig.ConfigurationDocument;
+import org.wsI.testing.x2003.x03.analyzerConfig.LogFile;
+import org.wsI.testing.x2003.x03.analyzerConfig.LogFile.CorrelationType;
+import org.wsI.testing.x2003.x03.analyzerConfig.ReportFile;
+import org.wsI.testing.x2003.x03.common.AddStyleSheet;
+import org.wsI.testing.x2003.x03.log.Environment;
+import org.wsI.testing.x2003.x03.log.HttpMessageEntry;
+import org.wsI.testing.x2003.x03.log.Implementation;
+import org.wsI.testing.x2003.x03.log.Log;
+import org.wsI.testing.x2003.x03.log.LogDocument;
+import org.wsI.testing.x2003.x03.log.MessageEntry;
+import org.wsI.testing.x2003.x03.log.Monitor;
+import org.wsI.testing.x2003.x03.log.NameVersionPair;
+import org.wsI.testing.x2003.x03.log.TcpMessageType;
+
+import javax.swing.SwingUtilities;
+import java.awt.Dimension;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * Validates the request XML of a WsdlRequest
@@ -66,12 +66,14 @@ import com.eviware.soapui.ui.support.DefaultDesktopPanel;
  */
 
 public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
+    public final static Logger log = Logger.getLogger(WSIValidateRequestAction.class);
     private String configFile;
     private File logFile;
     private String wsiDir;
+    private String profile;
 
     public WSIValidateRequestAction() {
-        super("Check WS-I Compliance", "Validates the current request/response againt the WS-I Basic Profile");
+        super("Check WS-I Compliance", "Validates the current request/response against the WS-I Basic Profile");
     }
 
     protected void generate(StringToStringMap values, ToolHost toolHost, WsdlRequest modelItem) throws Exception {
@@ -81,7 +83,7 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
         }
 
         wsiDir = SoapUI.getSettings().getString(WSISettings.WSI_LOCATION,
-                System.getProperty("wsi.dir", System.getenv("WSI_HOME")));
+                System.getProperty(WSIAnalyzeAction.WSI_DIR_PROP_NAME, System.getenv(WSIAnalyzeAction.WSI_HOME_ENV_VAR_NAME)));
         if (wsiDir == null) {
             UISupport.showErrorMessage("WSI Test Tools directory must be set in global preferences");
             return;
@@ -94,13 +96,15 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
             }
         }
 
+        profile = SoapUI.getSettings().getString(WSISettings.PROFILE_TYPE, WSISettings.BASIC_PROFILE_10_TAD);
+
         ProcessBuilder builder = new ProcessBuilder();
 
-        File reportFile = File.createTempFile("wsi-report", ".xml");
+        File reportFile = File.createTempFile(WSIAnalyzeAction.WSI_REPORT_NAME, WSIAnalyzeAction.XML_EXTENSION);
 
         ArgumentBuilder args = buildArgs(reportFile, modelItem);
         builder.command(args.getArgs());
-        builder.directory(new File(wsiDir + File.separatorChar + "java" + File.separatorChar + "bin"));
+        builder.directory(new File(wsiDir));
 
         toolHost.run(new WSIProcessToolRunner(builder, reportFile, modelItem));
     }
@@ -111,14 +115,10 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
         Settings settings = modelItem.getSettings();
 
         ArgumentBuilder builder = new ArgumentBuilder(new StringToStringMap());
-        builder.startScript("Analyzer", ".bat", ".sh");
-
+        builder.startScript(wsiDir + File.separator +
+                        (profile.equals(WSISettings.BASIC_PROFILE_10_TAD)?WSIAnalyzeAction.ANALYZER_V10_NAME:WSIAnalyzeAction.ANALYZER_V11_NAME),
+                WSIAnalyzeAction.WIN_BATCH_FILE_EXTENSION, WSIAnalyzeAction.UNIX_BATCH_FILE_EXTENSION);
         builder.addArgs("-config", file.getAbsolutePath());
-
-        // add this to command-line due to bug in wsi-tools (?)
-        if (settings.getBoolean(WSISettings.ASSERTION_DESCRIPTION)) {
-            builder.addArgs("-assertionDescription", "true");
-        }
 
         return builder;
     }
@@ -144,8 +144,9 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
 
         config.setVerbose(settings.getBoolean(WSISettings.VERBOSE));
         AssertionResults results = config.addNewAssertionResults();
-        results.setType(AssertionResults.Type.Enum.forString(settings.getString(WSISettings.RESULTS_TYPE,
-                AssertionResults.Type.ONLY_FAILED.toString())));
+        /*results.setType(AssertionResults.Type.Enum.forString(settings.getString(WSISettings.RESULTS_TYPE,
+                AssertionResults.Type.ONLY_FAILED.toString())));*/
+        results.setType(AssertionResults.Type.Enum.forString(WSIAnalyzeAction.ALL_RESULT_TYPE));
 
         results.setMessageEntry(settings.getBoolean(WSISettings.MESSAGE_ENTRY));
         results.setFailureMessage(settings.getBoolean(WSISettings.FAILURE_MESSAGE));
@@ -156,32 +157,19 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
         report.setReplace(true);
 
         AddStyleSheet stylesheet = report.addNewAddStyleSheet();
-        stylesheet.setHref(".\\..\\common\\Profiles\\SSBP10_BP11_TAD.xml");
+        stylesheet.setHref(WSIAnalyzeAction.PROFILES_DIR_RELATED_PATH + profile);
         stylesheet.setType("text/xsl");
         stylesheet.setAlternate(false);
 
-        config.setTestAssertionsFile("../../common/profiles/SSBP10_BP11_TAD.xml");
+        config.setTestAssertionsFile(WSIAnalyzeAction.PROFILES_DIR_RELATED_PATH + profile);
 
         LogFile logFileConfig = config.addNewLogFile();
         logFileConfig.setStringValue(logFile.getAbsolutePath());
         logFileConfig.setCorrelationType(CorrelationType.ENDPOINT);
 
-		/*
-         * WsdlInterface iface = (WsdlInterface)
-		 * modelItem.getOperation().getInterface();
-		 * 
-		 * WsdlReferenceConfig wsdlRef = config.addNewWsdlReference();
-		 * wsdlRef.setWsdlURI( iface.getWsdlDefinition() );
-		 * WsdlElementReferenceConfig wsdlElement = wsdlRef.addNewWsdlElement();
-		 * wsdlElement.setType( WsdlElementTypeConfig.BINDING );
-		 * wsdlElement.setStringValue( iface.getBindingName().getLocalPart() );
-		 * wsdlElement.setNamespace( iface.getBindingName().getNamespaceURI() );
-		 * wsdlRef.setServiceLocation( modelItem.getEndpoint() );
-		 */
-
         configFile = configDoc.toString();
 
-        File file = File.createTempFile("wsi-analyzer-config", ".xml");
+        File file = File.createTempFile(WSIAnalyzeAction.WSI_ANALYZER_CONFIG, WSIAnalyzeAction.XML_EXTENSION);
 
         configDoc.save(file);
         return file;
@@ -295,7 +283,7 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
         }
 
         public String getDescription() {
-            return "Running WSI Analysis tools..";
+            return "Running WSI Analysis tools...";
         }
 
         protected void afterRun(int exitCode, RunnerContext context) {
@@ -315,7 +303,20 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
                         }
                     }
                 });
+            } else {
+                ProcessBuilder processBuilder = getBuilders()[0];
+                List<String> programAndArgs = processBuilder.command();
+                log.error("WSI checking failed. Exit code " + new Integer(exitCode).toString() + ". Command line: " + getCommandDetails(programAndArgs));
             }
+        }
+
+        private String getCommandDetails (List<String> command){
+            String str = "";
+            for (String entity: command){
+                str += entity + " ";
+            }
+
+            return str;
         }
 
         public boolean showLog() {
@@ -324,7 +325,8 @@ public class WSIValidateRequestAction extends AbstractToolsAction<WsdlRequest> {
 
         @Override
         protected void beforeProcess(ProcessBuilder processBuilder, RunnerContext context) {
-            processBuilder.environment().put("WSI_HOME", wsiDir);
+            super.beforeProcess(processBuilder, context);
+            processBuilder.environment().put(WSIAnalyzeAction.WSI_HOME_ENV_VAR_NAME, wsiDir);
         }
     }
 }

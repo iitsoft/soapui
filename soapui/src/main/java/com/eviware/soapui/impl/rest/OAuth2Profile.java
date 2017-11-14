@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.rest;
 
@@ -63,6 +63,9 @@ public class OAuth2Profile implements PropertyExpansionContainer {
     public static final String OAUTH2_FLOW_PROPERTY = "oAuth2Flow";
     public static final String JAVA_SCRIPTS_PROPERTY = "javaScripts";
     public static final String MANUAL_ACCESS_TOKEN_EXPIRATION_TIME_UNIT_PROPERTY = "manualAccessTokenExpirationTimeUnit";
+
+    public static final String RESOURCE_OWNER_LOGIN_PROPERTY = "resourceOwnerName";
+    public static final String RESOURCE_OWNER_PASSWORD_PROPERTY = "resourceOwnerPassword";
 
     public void waitForAccessTokenStatus(AccessTokenStatus accessTokenStatus, int timeout) {
         int timeLeft = timeout;
@@ -119,7 +122,9 @@ public class OAuth2Profile implements PropertyExpansionContainer {
 
     public enum OAuth2Flow {
         AUTHORIZATION_CODE_GRANT("Authorization Code Grant"),
-        IMPLICIT_GRANT("Implicit Grant");
+        IMPLICIT_GRANT("Implicit Grant"),
+        RESOURCE_OWNER_PASSWORD_CREDENTIALS("Resource Owner Password Credentials Grant"),
+        CLIENT_CREDENTIALS_GRANT("Client Credentials Grant");
 
         private String description;
 
@@ -282,6 +287,30 @@ public class OAuth2Profile implements PropertyExpansionContainer {
         if (!StringUtils.equals(oldValue, clientSecret)) {
             configuration.setClientSecret(clientSecret);
             pcs.firePropertyChange(CLIENT_SECRET_PROPERTY, oldValue, clientSecret);
+        }
+    }
+
+    public String getResourceOwnerName() {
+        return configuration.getResourceOwnerName();
+    }
+
+    public void setResourceOwnerName(String resourceOwnerName) {
+        String oldValue = configuration.getResourceOwnerName();
+        if (!StringUtils.equals(oldValue, resourceOwnerName)) {
+            configuration.setResourceOwnerName(resourceOwnerName);
+            pcs.firePropertyChange(RESOURCE_OWNER_LOGIN_PROPERTY, oldValue, resourceOwnerName);
+        }
+    }
+
+    public String getResourceOwnerPassword() {
+        return configuration.getResourceOwnerPassword();
+    }
+
+    public void setResourceOwnerPassword(String resourceOwnerPassword) {
+        String oldValue = configuration.getResourceOwnerPassword();
+        if (!StringUtils.equals(oldValue, resourceOwnerPassword)) {
+            configuration.setResourceOwnerPassword(resourceOwnerPassword);
+            pcs.firePropertyChange(RESOURCE_OWNER_PASSWORD_PROPERTY, oldValue, resourceOwnerPassword);
         }
     }
 
@@ -470,6 +499,8 @@ public class OAuth2Profile implements PropertyExpansionContainer {
         result.extractAndAddAll(ACCESS_TOKEN_PROPERTY);
         result.extractAndAddAll(SCOPE_PROPERTY);
         result.extractAndAddAll(MANUAL_ACCESS_TOKEN_EXPIRATION_TIME);
+        result.extractAndAddAll(RESOURCE_OWNER_LOGIN_PROPERTY);
+        result.extractAndAddAll(RESOURCE_OWNER_PASSWORD_PROPERTY);
 
         return result.toArray();
     }

@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.mock;
 
@@ -91,6 +91,9 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.eviware.soapui.analytics.SoapUIActions.STOP_REST_MOCK_FROM_MOCK_PANEL;
+import static com.eviware.soapui.analytics.SoapUIActions.STOP_SOAP_MOCK_FROM_MOCK_PANEL;
 
 /**
  * DesktopPanel for WsdlMockServices
@@ -373,7 +376,7 @@ public class WsdlMockServiceDesktopPanel<MockServiceType extends MockService>
         }
 
         optionsButton = createActionButton(
-                SwingActionDelegate.createDelegate(action, modelItem, null, "/options.gif"),
+                SwingActionDelegate.createDelegate(action, modelItem, null, "/preferences.png"),
                 true);
         showWsdlButton = createActionButton(new ShowWsdlAction(), false);
 
@@ -545,9 +548,9 @@ public class WsdlMockServiceDesktopPanel<MockServiceType extends MockService>
         public void actionPerformed(ActionEvent arg0) {
 
             if (getModelItem() instanceof WsdlMockService) {
-                Analytics.trackAction(SoapUIActions.START_SOAP_MOCK.getActionName());
+                Analytics.trackAction(SoapUIActions.START_SOAP_MOCK_FROM_MOCK_PANEL);
             } else if (getModelItem() instanceof RestMockService) {
-                Analytics.trackAction(SoapUIActions.START_REST_MOCK.getActionName());
+                Analytics.trackAction(SoapUIActions.START_REST_MOCK_FROM_MOCK_PANEL);
             }
 
             startMockService();
@@ -556,7 +559,7 @@ public class WsdlMockServiceDesktopPanel<MockServiceType extends MockService>
 
     public class ShowWsdlAction extends AbstractAction {
         public ShowWsdlAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/interface.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/interface.png"));
             putValue(Action.SHORT_DESCRIPTION, "Opens the root WSDL page in a browser");
         }
 
@@ -568,7 +571,7 @@ public class WsdlMockServiceDesktopPanel<MockServiceType extends MockService>
 
     public class StopMockServiceAction extends AbstractAction {
         public StopMockServiceAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/cancel_request.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/cancel_request.png"));
             putValue(Action.SHORT_DESCRIPTION, "Stops this MockService on the specified port and endpoint");
         }
 
@@ -578,7 +581,25 @@ public class WsdlMockServiceDesktopPanel<MockServiceType extends MockService>
             } else {
                 mockRunner.stop();
                 mockRunner.release();
+                trackStopMockService(mockRunner);
                 mockRunner = null;
+            }
+        }
+    }
+
+    private void trackStopMockService(WsdlMockRunner mockRunner) {
+        if (mockRunner != null) {
+            try {
+                MockService mockService = mockRunner.getMockContext().getMockService();
+                if (mockService != null) {
+                    if (mockService instanceof WsdlMockService) {
+                        Analytics.trackAction(STOP_SOAP_MOCK_FROM_MOCK_PANEL);
+                    } else if (mockService instanceof RestMockService) {
+                        Analytics.trackAction(STOP_REST_MOCK_FROM_MOCK_PANEL);
+                    }
+                }
+            } catch (Exception e) {
+                //ignore
             }
         }
     }
@@ -694,7 +715,7 @@ public class WsdlMockServiceDesktopPanel<MockServiceType extends MockService>
 
     private class SetLogOptionsAction extends AbstractAction {
         public SetLogOptionsAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/options.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/preferences.png"));
             putValue(Action.SHORT_DESCRIPTION, "Sets MockService Log Options");
         }
 
@@ -715,7 +736,7 @@ public class WsdlMockServiceDesktopPanel<MockServiceType extends MockService>
 
     private class ClearLogAction extends AbstractAction {
         public ClearLogAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/clear_loadtest.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/clear.png"));
             putValue(Action.SHORT_DESCRIPTION, "Clears the MockService Log");
         }
 

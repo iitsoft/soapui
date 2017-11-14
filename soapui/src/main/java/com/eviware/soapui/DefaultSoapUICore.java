@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui;
 
@@ -24,6 +24,7 @@ import com.eviware.soapui.model.propertyexpansion.PropertyExpansionUtils;
 import com.eviware.soapui.model.settings.Settings;
 import com.eviware.soapui.monitor.JettyMockEngine;
 import com.eviware.soapui.monitor.MockEngine;
+import com.eviware.soapui.plugins.PluginManager;
 import com.eviware.soapui.security.registry.SecurityScanRegistry;
 import com.eviware.soapui.settings.HttpSettings;
 import com.eviware.soapui.settings.ProxySettings;
@@ -85,6 +86,8 @@ public class DefaultSoapUICore implements SoapUICore {
     protected boolean initialImport;
     private TimerTask settingsWatcher;
     private SoapUIExtensionClassLoader extClassLoader;
+
+    private PluginManager pluginManager;
 
     public boolean isSavingSettings;
 
@@ -159,6 +162,11 @@ public class DefaultSoapUICore implements SoapUICore {
                 }
             }
         }
+
+        pluginManager = new PluginManager(getFactoryRegistry(), getActionRegistry(), getListenerRegistry());
+        pluginManager.loadPlugins();
+        log.info("All plugins loaded");
+
     }
 
     protected void initExtensions(ClassLoader extensionClassLoader) {
@@ -192,19 +200,19 @@ public class DefaultSoapUICore implements SoapUICore {
         // look for factories
         JarEntry entry = jarFile.getJarEntry("META-INF/factories.xml");
         if (entry != null) {
-            factoryRegistry.addConfig(jarFile.getInputStream(entry), extensionClassLoader);
+            getFactoryRegistry().addConfig(jarFile.getInputStream(entry), extensionClassLoader);
         }
 
         // look for listeners
         entry = jarFile.getJarEntry("META-INF/listeners.xml");
         if (entry != null) {
-            listenerRegistry.addConfig(jarFile.getInputStream(entry), extensionClassLoader);
+            getListenerRegistry().addConfig(jarFile.getInputStream(entry), extensionClassLoader);
         }
 
         // look for actions
         entry = jarFile.getJarEntry("META-INF/actions.xml");
         if (entry != null) {
-            actionRegistry.addConfig(jarFile.getInputStream(entry), extensionClassLoader);
+            getActionRegistry().addConfig(jarFile.getInputStream(entry), extensionClassLoader);
         }
 
         // add jar to resource classloader so embedded images can be found with UISupport.loadImageIcon(..)

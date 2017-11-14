@@ -1,33 +1,23 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringTokenizer;
-
-import javax.swing.Action;
-
-import org.apache.log4j.Logger;
-
 import com.eviware.soapui.SoapUI;
+import com.eviware.soapui.analytics.Analytics;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
 import com.eviware.soapui.impl.wsdl.WsdlTestSuite;
 import com.eviware.soapui.impl.wsdl.actions.iface.tools.support.AbstractToolsAction;
@@ -50,6 +40,17 @@ import com.eviware.x.form.XFormFactory;
 import com.eviware.x.form.XFormField;
 import com.eviware.x.form.XFormFieldListener;
 import com.eviware.x.impl.swing.JTextAreaFormField;
+import org.apache.log4j.Logger;
+
+import javax.swing.Action;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import static com.eviware.soapui.analytics.SoapUIActions.LAUNCH_FUNCTIONAL_TEST_RUNNER_FROM_UI;
 
 /**
  * Invokes SoapUI TestRunner tool
@@ -71,6 +72,7 @@ public class TestRunnerAction extends AbstractToolsAction<WsdlProject> {
     protected static final String PRINTREPORT = "Print Report";
     protected static final String ROOTFOLDER = "Root Folder";
     protected static final String EXPORTJUNITRESULTS = "Export JUnit Results";
+    protected static final String EXPORTJUNITRESULTSWITHPROPERTIES = "Export JUnit Results with test properties";
     protected static final String EXPORTALL = "Export All";
     protected static final String ENABLEUI = "Enable UI";
     protected static final String TESTRUNNERPATH = "TestRunner Path";
@@ -177,6 +179,7 @@ public class TestRunnerAction extends AbstractToolsAction<WsdlProject> {
         reportForm = builder.createForm("Reports");
         reportForm.addCheckBox(PRINTREPORT, "Prints a summary report to the console");
         reportForm.addCheckBox(EXPORTJUNITRESULTS, "Exports results to a JUnit-Style report");
+        reportForm.addCheckBox(EXPORTJUNITRESULTSWITHPROPERTIES, "Exports results to a JUnit-Style report with test properties");
         reportForm.addCheckBox(EXPORTALL, "Exports all results (not only errors)");
         reportForm.addTextField(ROOTFOLDER, "Folder to export to", XForm.FieldType.FOLDER);
         reportForm.addSeparator();
@@ -315,6 +318,7 @@ public class TestRunnerAction extends AbstractToolsAction<WsdlProject> {
         }
 
         toolHost.run(new ProcessToolRunner(builder, "SoapUI TestRunner", modelItem, args));
+        Analytics.trackAction(LAUNCH_FUNCTIONAL_TEST_RUNNER_FROM_UI);
     }
 
     protected ArgumentBuilder buildArgs(WsdlProject modelItem) throws IOException {
@@ -350,6 +354,7 @@ public class TestRunnerAction extends AbstractToolsAction<WsdlProject> {
         builder.addBoolean(PRINTREPORT, "-r");
         builder.addBoolean(EXPORTALL, "-a");
         builder.addBoolean(EXPORTJUNITRESULTS, "-j");
+        builder.addBoolean(EXPORTJUNITRESULTSWITHPROPERTIES, "-J");
         builder.addString(ROOTFOLDER, "-f", "");
 
         if (proVersion) {

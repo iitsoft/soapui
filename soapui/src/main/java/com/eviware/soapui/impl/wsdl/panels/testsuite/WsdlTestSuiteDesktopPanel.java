@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.testsuite;
 
@@ -264,8 +264,10 @@ public class WsdlTestSuiteDesktopPanel extends KeySensitiveModelItemDesktopPanel
 
     private Component buildTestCaseListToolbar() {
         JXToolBar toolbar = UISupport.createToolbar();
-        toolbar.add(UISupport.createToolbarButton(SwingActionDelegate.createDelegate(
-                AddNewTestCaseAction.SOAPUI_ACTION_ID, getModelItem(), null, "/testCase.gif")));
+        SwingActionDelegate testCaseDelegate = SwingActionDelegate.createDelegate(
+                AddNewTestCaseAction.SOAPUI_ACTION_ID, getModelItem(), null, "/testcase.png");
+        testCaseDelegate.getMapping().setParam(SoapUIActions.CREATE_TEST_CASE_FROM_TEST_TEST_SUITE_PANEL);
+        toolbar.add(UISupport.createToolbarButton(testCaseDelegate));
         toolbar.addGlue();
         toolbar.add(UISupport.createToolbarButton(new ShowOnlineHelpAction(HelpUrls.TESTSUITEEDITOR_HELP_URL)));
         return toolbar;
@@ -327,19 +329,19 @@ public class WsdlTestSuiteDesktopPanel extends KeySensitiveModelItemDesktopPanel
 
     private class RunAction extends AbstractAction {
         public RunAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_testcase.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.png"));
             putValue(Action.SHORT_DESCRIPTION, "Runs the selected TestCases");
         }
 
         public void actionPerformed(ActionEvent e) {
             runTestSuite();
-            Analytics.trackAction(SoapUIActions.RUN_TEST_SUITE.getActionName(), "RunType", getModelItem().getRunType().name());
+            Analytics.trackAction(SoapUIActions.RUN_TEST_CASE_FROM_TOOLBAR, "RunType", getModelItem().getRunType().name());
         }
     }
 
     private class CancelAction extends AbstractAction {
         public CancelAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/stop_testcase.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/stop.png"));
             putValue(Action.SHORT_DESCRIPTION, "Cancels ongoing TestCase runs");
         }
 

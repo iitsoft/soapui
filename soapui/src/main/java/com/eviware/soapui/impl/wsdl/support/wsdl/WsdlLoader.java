@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.support.wsdl;
 
@@ -33,7 +33,7 @@ import org.apache.xmlbeans.XmlOptions;
 import org.xml.sax.InputSource;
 
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 
 /**
  * Abstract WSDLLocator for loading definitions from either URL or cache..
@@ -55,15 +55,23 @@ public abstract class WsdlLoader extends AbstractDefinitionLoader implements Wsd
         if (!PathUtils.isFilePath(url) && !PathUtils.isRelativePath(url)) {
             // check for username/password
             try {
-                URL u = new URL(url);
-                String authority = u.getAuthority();
-                if (authority != null) {
-                    int ix1 = authority.indexOf('@');
-                    int ix2 = authority.indexOf(':');
+                URI uri = new URI(url);
+                String userInfo = uri.getUserInfo();
+                if (userInfo != null) {
+                    int colonIndex = userInfo.indexOf(':');
+                    username = userInfo.substring(0, colonIndex);
+                    password = userInfo.substring(colonIndex + 1);
+                } else {
+                    //userInfo may be null if username and password have some special chars and are not url encoded
+                    String authority = uri.getAuthority();
+                    if (authority != null) {
+                        int atIndex = authority.lastIndexOf('@');
+                        int colonIndex = authority.indexOf(':');
 
-                    if (ix1 > ix2 && ix2 > 0) {
-                        username = authority.substring(0, ix2);
-                        password = authority.substring(ix2 + 1, ix1);
+                        if (atIndex > colonIndex && colonIndex > 0) {
+                            username = authority.substring(0, colonIndex);
+                            password = authority.substring(colonIndex + 1, atIndex);
+                        }
                     }
                 }
             } catch (Exception e) {

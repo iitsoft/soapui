@@ -1,27 +1,33 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.submit.transports.http.support.attachments;
 
-import java.io.ByteArrayOutputStream;
-import java.io.StringWriter;
-import java.util.Vector;
-
-import javax.xml.namespace.QName;
-
+import com.eviware.soapui.SoapUI;
+import com.eviware.soapui.impl.support.AbstractHttpRequestInterface;
+import com.eviware.soapui.impl.wsdl.WsdlRequest;
+import com.eviware.soapui.impl.wsdl.submit.filters.WssRequestFilter;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.ExtendedHttpMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.WsdlResponse;
+import com.eviware.soapui.impl.wsdl.support.wss.IncomingWss;
+import com.eviware.soapui.impl.wsdl.support.xsd.SchemaUtils;
+import com.eviware.soapui.model.iface.Attachment;
+import com.eviware.soapui.model.propertyexpansion.PropertyExpansionContext;
+import com.eviware.soapui.support.Tools;
+import com.eviware.soapui.support.xml.XmlUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.Header;
@@ -37,18 +43,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.eviware.soapui.SoapUI;
-import com.eviware.soapui.impl.support.AbstractHttpRequestInterface;
-import com.eviware.soapui.impl.wsdl.WsdlRequest;
-import com.eviware.soapui.impl.wsdl.submit.filters.WssRequestFilter;
-import com.eviware.soapui.impl.wsdl.submit.transports.http.ExtendedHttpMethod;
-import com.eviware.soapui.impl.wsdl.submit.transports.http.WsdlResponse;
-import com.eviware.soapui.impl.wsdl.support.wss.IncomingWss;
-import com.eviware.soapui.impl.wsdl.support.xsd.SchemaUtils;
-import com.eviware.soapui.model.iface.Attachment;
-import com.eviware.soapui.model.propertyexpansion.PropertyExpansionContext;
-import com.eviware.soapui.support.Tools;
-import com.eviware.soapui.support.xml.XmlUtils;
+import javax.xml.namespace.QName;
+import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
+import java.net.URLDecoder;
+import java.util.Vector;
 
 public class WsdlMimeMessageResponse extends MimeMessageResponse implements WsdlResponse {
     private Vector<Object> wssResult;
@@ -117,7 +116,9 @@ public class WsdlMimeMessageResponse extends MimeMessageResponse implements Wsdl
             for (XmlObject include : includes) {
                 Element elm = (Element) include.getDomNode();
                 String href = elm.getAttribute("href");
-                Attachment attachment = getMmSupport().getAttachmentWithContentId("<" + href.substring(4) + ">");
+                // substing(4) - removing the "cid:" prefix
+                Attachment attachment = getMmSupport().getAttachmentWithContentId("<" + URLDecoder.decode(href.substring(4), "UTF-8") + ">");
+                
                 if (attachment != null) {
                     ByteArrayOutputStream data = Tools.readAll(attachment.getInputStream(), 0);
                     byte[] byteArray = data.toByteArray();

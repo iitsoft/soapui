@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.support.editor.registry;
 
@@ -29,14 +29,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Registry of availabel XmlViews
+ * Registry of available XmlViews
  *
  * @author ole.matzura
  */
 
 public class EditorViewFactoryRegistry implements SoapUIFactoryRegistryListener {
     private static EditorViewFactoryRegistry instance;
-    private List<EditorViewFactory> factories = new ArrayList<EditorViewFactory>();
+    private List<EditorViewFactory> factories = new ArrayList<>();
 
     public EditorViewFactoryRegistry() {
         // this should obviously come from a configuration file..
@@ -47,12 +47,11 @@ public class EditorViewFactoryRegistry implements SoapUIFactoryRegistryListener 
         addFactory(new HttpHtmlResponseViewFactory());
         addFactory(new RawXmlEditorFactory());
 
-        for( EditorViewFactory factory : SoapUI.getFactoryRegistry().getFactories( EditorViewFactory.class ))
-        {
-            addFactory( factory );
+        for (EditorViewFactory factory : SoapUI.getFactoryRegistry().getFactories(EditorViewFactory.class)) {
+            addFactory(factory);
         }
 
-        SoapUI.getFactoryRegistry().addFactoryRegistryListener( this );
+        SoapUI.getFactoryRegistry().addFactoryRegistryListener(this);
     }
 
     public void addFactory(EditorViewFactory factory) {
@@ -80,7 +79,7 @@ public class EditorViewFactoryRegistry implements SoapUIFactoryRegistryListener 
     }
 
     public EditorViewFactory[] getFactoriesOfType(Class<?> type) {
-        List<EditorViewFactory> result = new ArrayList<EditorViewFactory>();
+        List<EditorViewFactory> result = new ArrayList<>();
         for (EditorViewFactory factory : factories) {
             if (Arrays.asList(factory.getClass().getInterfaces()).contains(type)) {
                 result.add(factory);
@@ -96,13 +95,15 @@ public class EditorViewFactoryRegistry implements SoapUIFactoryRegistryListener 
 
     @Override
     public void factoryAdded(Class<?> factoryType, Object factory) {
-        if( factoryType.isAssignableFrom( EditorViewFactory.class ))
+        if (factoryType.isAssignableFrom(EditorViewFactory.class)) {
             addFactory((EditorViewFactory) factory);
+        }
     }
 
     @Override
     public void factoryRemoved(Class<?> factoryType, Object factory) {
-        if( factoryType.isAssignableFrom( EditorViewFactory.class ))
+        if (factoryType.isAssignableFrom(EditorViewFactory.class)) {
             removeFactory((EditorViewFactory) factory);
+        }
     }
 }

@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.teststeps;
 
@@ -23,7 +23,13 @@ import com.eviware.soapui.impl.wsdl.teststeps.TestRequest;
 import com.eviware.soapui.impl.wsdl.teststeps.WsdlMessageAssertion;
 import com.eviware.soapui.impl.wsdl.teststeps.assertions.TestAssertionRegistry.AssertableType;
 import com.eviware.soapui.model.ModelItem;
-import com.eviware.soapui.model.iface.*;
+import com.eviware.soapui.model.iface.Attachment;
+import com.eviware.soapui.model.iface.Interface;
+import com.eviware.soapui.model.iface.MessagePart;
+import com.eviware.soapui.model.iface.Operation;
+import com.eviware.soapui.model.iface.Submit;
+import com.eviware.soapui.model.iface.SubmitContext;
+import com.eviware.soapui.model.iface.SubmitListener;
 import com.eviware.soapui.model.settings.Settings;
 import com.eviware.soapui.model.support.AbstractModelItem;
 import com.eviware.soapui.model.support.AnimatableItem;
@@ -35,7 +41,7 @@ import com.eviware.soapui.monitor.TestMonitor;
 import com.eviware.soapui.support.UISupport;
 import org.apache.log4j.Logger;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -268,26 +274,26 @@ public class JdbcRequest extends AbstractModelItem implements Assertable, TestRe
 
     public void initIcons() {
         if (validRequestIcon == null) {
-            validRequestIcon = UISupport.createImageIcon("/valid_jdbc_request.gif");
+            validRequestIcon = UISupport.createImageIcon("/valid_jdbc_request_step.png");
         }
 
         if (failedRequestIcon == null) {
-            failedRequestIcon = UISupport.createImageIcon("/invalid_jdbc_request.gif");
+            failedRequestIcon = UISupport.createImageIcon("/invalid_jdbc_request_step.png");
         }
 
         if (unknownRequestIcon == null) {
-            unknownRequestIcon = UISupport.createImageIcon("/unknown_jdbc_request.gif");
+            unknownRequestIcon = UISupport.createImageIcon("/jdbc_request_step.png");
         }
 
         if (disabledRequestIcon == null) {
-            disabledRequestIcon = UISupport.createImageIcon("/disabled_jdbc_request.gif");
+            disabledRequestIcon = UISupport.createImageIcon("/disabled_jdbc_request_step.png");
         }
 
-        setIconAnimator(new RequestIconAnimator<JdbcRequest>(this, "/jdbc_request.gif", "/exec_jdbc_request.gif", 4));
+        setIconAnimator(new RequestIconAnimator<JdbcRequest>(this, "/jdbc_request.png", "/jdbc_request.png", 4));
     }
 
     protected RequestIconAnimator<?> initIconAnimator() {
-        return new RequestIconAnimator<JdbcRequest>(this, "/jdbc_request.gif", "/exec_jdbc_request", 4);
+        return new RequestIconAnimator<JdbcRequest>(this, "/jdbc_request.png", "/exec_jdbc_request", 4);
     }
 
     public static class RequestIconAnimator<T extends JdbcRequest> extends IconAnimator<T> implements

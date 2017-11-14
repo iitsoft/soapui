@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.ui.desktop.standalone;
 
@@ -32,10 +32,27 @@ import com.eviware.soapui.ui.desktop.AbstractSoapUIDesktop;
 import com.eviware.soapui.ui.desktop.DesktopPanel;
 import com.eviware.soapui.ui.desktop.SoapUIDesktop;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.DesktopManager;
+import javax.swing.JComponent;
+import javax.swing.JDesktopPane;
+import javax.swing.JInternalFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -43,8 +60,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The default standalone SoapUI desktop using a JDesktopPane
@@ -67,8 +88,6 @@ public class StandaloneDesktop extends AbstractSoapUIDesktop {
     private CloseAllAction closeAllAction = new CloseAllAction();
 
     private static final int xOffset = 30, yOffset = 30;
-    //private JPanel desktopPanel = new JPanel(new BorderLayout());
-
     private boolean transferring;
 
     private List<DesktopPanel> deferredDesktopPanels = new LinkedList<DesktopPanel>();
@@ -87,7 +106,6 @@ public class StandaloneDesktop extends AbstractSoapUIDesktop {
 
         // Setting Mac-like color for all platforms pending
         desktop.setBackground(UISupport.MAC_BACKGROUND_COLOR);
-
         enableWindowActions();
         desktop.addComponentListener(new DesktopResizeListener());
 
@@ -107,7 +125,7 @@ public class StandaloneDesktop extends AbstractSoapUIDesktop {
     private void buildUI() {
         desktop = new SoapUIDesktopPane();
         JScrollPane scrollPane = new JScrollPane(desktop);
-
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
         inspector = JInspectorPanelFactory.build(scrollPane, SwingConstants.RIGHT);
         inspectorPanel = new JPanel( new BorderLayout());
         inspector.addInspector(new JComponentInspector<JComponent>(inspectorPanel, "Inspector",
@@ -227,9 +245,10 @@ public class StandaloneDesktop extends AbstractSoapUIDesktop {
         if (!SoapUI.getSettings().getBoolean(UISettings.NATIVE_LAF)) {
             // This creates an empty frame on Mac OS X native L&F.
             frame.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createRaisedBevelBorder(),
-                    BorderFactory.createEmptyBorder(2, 2, 2, 2)));
+                    BorderFactory.createEmptyBorder(4, 4, 4, 4)));
+        } else if (!UISupport.isMac()) {
+            frame.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         }
-
         return frame;
     }
 
@@ -421,7 +440,7 @@ public class StandaloneDesktop extends AbstractSoapUIDesktop {
                 if (!file.exists())
                     file = new File("soapui-background.jpg");
                 if (!file.exists())
-                    file = new File("soapui-background.png");
+                    file = new File("/soapui-background.png");
 
                 if (file.exists()) {
                     img = javax.imageio.ImageIO.read(file);
@@ -435,7 +454,6 @@ public class StandaloneDesktop extends AbstractSoapUIDesktop {
 
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
-
             if (img == null)
                 return;
 

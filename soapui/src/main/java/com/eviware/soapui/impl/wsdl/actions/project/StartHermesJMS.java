@@ -1,36 +1,37 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.actions.project;
-
-import java.awt.Component;
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.actions.SoapUIPreferencesAction;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
 import com.eviware.soapui.impl.wsdl.submit.transports.jms.util.HermesUtils;
+import com.eviware.soapui.impl.wsdl.support.HelpUrls;
 import com.eviware.soapui.model.propertyexpansion.PropertyExpander;
 import com.eviware.soapui.settings.ToolsSettings;
 import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.action.support.AbstractSoapUIAction;
 import com.eviware.soapui.support.components.DirectoryFormComponent;
 import com.eviware.soapui.support.components.SimpleForm;
+
+import java.awt.Component;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 public class StartHermesJMS extends AbstractSoapUIAction<WsdlProject> {
     public static final String SOAPUI_ACTION_ID = "StarHermesJMS";
@@ -79,7 +80,7 @@ public class StartHermesJMS extends AbstractSoapUIAction<WsdlProject> {
         try {
             File file = new File(hermesConfigPath + File.separator + HermesUtils.HERMES_CONFIG_XML);
             if (!file.exists()) {
-                UISupport.showErrorMessage("No hermes-config.xml on this path!");
+                UISupport.showErrorMessage("No hermes-config.xml in this path!");
                 return;
             }
             ProcessBuilder pb = new ProcessBuilder(hermesBatPath);
@@ -106,7 +107,7 @@ public class StartHermesJMS extends AbstractSoapUIAction<WsdlProject> {
         DirectoryFormComponent folderComponent;
 
         public HermesConfigDialog(String initialPath) {
-            super("Start  HermesJMS", "Hermes configuration", null, true);
+            super("Start  HermesJMS", "Hermes configuration", HelpUrls.START_HERMES_HELP_URL, true);
             setVisible(false);
             folderComponent.setValue(initialPath);
             folderComponent.setInitialFolder(initialPath);

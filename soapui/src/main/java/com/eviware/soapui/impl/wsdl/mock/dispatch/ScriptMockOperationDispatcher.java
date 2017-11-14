@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.mock.dispatch;
 
@@ -205,12 +205,12 @@ public class ScriptMockOperationDispatcher extends AbstractMockOperationDispatch
 
     private class RunScriptAction extends AbstractAction {
         public RunScriptAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_groovy_script.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.png"));
             putValue(Action.SHORT_DESCRIPTION, "Runs this script using a mockRequest and context");
         }
 
         public void actionPerformed(ActionEvent e) {
-            Analytics.trackAction(SoapUIActions.RUN_TEST_STEP.getActionName(), "StepType", "GroovyScript");
+            Analytics.trackAction(SoapUIActions.RUN_TEST_STEP_FROM_PANEL, "StepType", "GroovyScript");
 
             MockResult lastMockResult = getMockOperation().getLastMockResult();
             MockRequest mockRequest = lastMockResult == null ? null : lastMockResult.getMockRequest();

@@ -1,36 +1,29 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.report;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.eviware.soapui.model.TestModelItem;
 import com.eviware.soapui.model.testsuite.ProjectRunContext;
 import com.eviware.soapui.model.testsuite.ProjectRunListener;
 import com.eviware.soapui.model.testsuite.ProjectRunner;
 import com.eviware.soapui.model.testsuite.TestCase;
 import com.eviware.soapui.model.testsuite.TestCaseRunContext;
 import com.eviware.soapui.model.testsuite.TestCaseRunner;
+import com.eviware.soapui.model.testsuite.TestProperty;
 import com.eviware.soapui.model.testsuite.TestRunListener;
 import com.eviware.soapui.model.testsuite.TestRunner.Status;
 import com.eviware.soapui.model.testsuite.TestStep;
@@ -43,6 +36,16 @@ import com.eviware.soapui.model.testsuite.TestSuiteRunner;
 import com.eviware.soapui.support.StringUtils;
 import com.eviware.soapui.support.xml.XmlUtils;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Collects TestRun results and creates JUnitReports
  *
@@ -53,7 +56,10 @@ public class JUnitReportCollector implements TestRunListener, TestSuiteRunListen
     HashMap<String, JUnitReport> reports;
     HashMap<TestCase, String> failures;
     HashMap<TestCase, Integer> errorCount;
+
+    protected boolean includeTestPropertiesInReport = false;
     private int maxErrors = 0;
+
 
     public JUnitReportCollector() {
         this(0);
@@ -108,22 +114,32 @@ public class JUnitReportCollector implements TestRunListener, TestSuiteRunListen
         TestCase testCase = testRunner.getTestCase();
         JUnitReport report = reports.get(testCase.getTestSuite().getName());
 
+        HashMap<String, String> testProperties = getTestPropertiesAsHashMap(testCase);
+
         if (Status.INITIALIZED != testRunner.getStatus() && Status.RUNNING != testRunner.getStatus()) {
             if (Status.CANCELED == testRunner.getStatus()) {
-                report.addTestCase(testCase.getName(), testRunner.getTimeTaken());
+                report.addTestCase(testCase.getName(), testRunner.getTimeTaken(), testProperties);
             }
             if (Status.FAILED == testRunner.getStatus()) {
                 String msg = "";
                 if (failures.containsKey(testCase)) {
                     msg = failures.get(testCase).toString();
                 }
-                report.addTestCaseWithFailure(testCase.getName(), testRunner.getTimeTaken(), testRunner.getReason(), msg);
+                report.addTestCaseWithFailure(testCase.getName(), testRunner.getTimeTaken(), testRunner.getReason(), msg, testProperties);
             }
             if (Status.FINISHED == testRunner.getStatus()) {
-                report.addTestCase(testCase.getName(), testRunner.getTimeTaken());
+                report.addTestCase(testCase.getName(), testRunner.getTimeTaken(), testProperties);
             }
 
         }
+    }
+
+    protected HashMap<String, String> getTestPropertiesAsHashMap(TestModelItem testCase) {
+        HashMap<String, String> testProperties = new HashMap<>();
+        for (Map.Entry<String, TestProperty> stringTestPropertyEntry : testCase.getProperties().entrySet()) {
+            testProperties.put(stringTestPropertyEntry.getKey(), stringTestPropertyEntry.getValue().getValue());
+        }
+        return testProperties;
     }
 
     public void afterStep(TestCaseRunner testRunner, TestCaseRunContext runContext, TestStepResult result) {
@@ -183,6 +199,7 @@ public class JUnitReportCollector implements TestRunListener, TestSuiteRunListen
         TestSuite testSuite = testCase.getTestSuite();
         if (!reports.containsKey(testSuite.getName())) {
             JUnitReport report = new JUnitReport();
+            report.setIncludeTestProperties(this.includeTestPropertiesInReport);
             report.setTestSuiteName(testSuite.getProject().getName() + "." + testSuite.getName());
             reports.put(testSuite.getName(), report);
         }
@@ -251,4 +268,9 @@ public class JUnitReportCollector implements TestRunListener, TestSuiteRunListen
 
         return new JUnitReportCollector(maxErrors);
     }
+
+    public void setIncludeTestPropertiesInReport(boolean includeTestPropertiesInReport) {
+        this.includeTestPropertiesInReport = includeTestPropertiesInReport;
+    }
+
 }

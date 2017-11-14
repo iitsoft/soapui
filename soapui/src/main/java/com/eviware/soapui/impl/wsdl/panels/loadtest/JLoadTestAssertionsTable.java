@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.loadtest;
 
@@ -270,7 +270,7 @@ public class JLoadTestAssertionsTable extends JPanel {
             super("Add Assertion");
 
             putValue(Action.SHORT_DESCRIPTION, "Adds an assertion to this LoadTest");
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/addAssertion.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/add.png"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -278,7 +278,7 @@ public class JLoadTestAssertionsTable extends JPanel {
             String type = (String) UISupport.prompt("Select assertion type to add", "Add Assertion", types);
             if (type != null) {
                 loadTest.addAssertion(type, LoadTestAssertion.ANY_TEST_STEP, true);
-                Analytics.trackAction(SoapUIActions.ADD_LOAD_TEST_ASSERTION.getActionName());
+                Analytics.trackAction(SoapUIActions.ADD_LOAD_TEST_ASSERTION);
             }
         }
     }
@@ -287,7 +287,7 @@ public class JLoadTestAssertionsTable extends JPanel {
         ConfigureAssertionAction() {
             super("Configure");
             putValue(Action.SHORT_DESCRIPTION, "Configures the selection assertion");
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/options.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/preferences.png"));
             setEnabled(false);
         }
 

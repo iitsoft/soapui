@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.teststeps.amf;
 
@@ -239,7 +239,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
         assertionsPanel = buildAssertionsPanel();
 
         assertionInspector = new JComponentInspector<JComponent>(assertionsPanel, "Assertions ("
-                + getModelItem().getAssertionCount() + ")", "Assertions for this Test Request", true);
+                + getModelItem().getAssertionCount() + ")", "Assertions for this Request", true);
 
         inspectorPanel.addInspector(assertionInspector);
         // setPreferredSize(new Dimension(600, 450));
@@ -371,7 +371,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
         toolbar.add(splitButton);
 
         toolbar.addFixed(UISupport
-                .createToolbarButton(new ShowOnlineHelpAction(HelpUrls.TRANSFERSTEPEDITOR_HELP_URL)));
+                .createToolbarButton(new ShowOnlineHelpAction(HelpUrls.TEST_AMF_REQUEST_EDITOR_HELP_URL)));
 
         return toolbar;
 
@@ -432,6 +432,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
                 if (!updating) {
                     amfRequestTestStep.setAmfCall(amfCallField.getText());
                 }
+                submitButton.setEnabled(enableSubmit());
             }
         });
     }
@@ -443,6 +444,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
                 if (!updating) {
                     amfRequestTestStep.setEndpoint(endpointField.getText());
                 }
+                submitButton.setEnabled(enableSubmit());
             }
         });
     }
@@ -496,7 +498,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
 
     private class RunAction extends AbstractAction {
         public RunAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_groovy_script.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.png"));
             putValue(Action.SHORT_DESCRIPTION,
                     "Runs this script in a seperate thread using a mock testRunner and testContext");
         }
@@ -718,7 +720,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
             throw new SubmitException("AMF request is not initialised properly !");
         }
 
-        Analytics.trackAction(SoapUIActions.RUN_TEST_STEP.getActionName(), "StepType", "AMF");
+        Analytics.trackAction(SoapUIActions.RUN_TEST_STEP_FROM_PANEL, "StepType", "AMF");
 
         return amfRequestTestStep.getAMFRequest().submit(submitContext, true);
     }
@@ -862,7 +864,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
     private class CancelAction extends AbstractAction {
         public CancelAction() {
             super();
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/cancel_request.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/cancel_request.png"));
             putValue(Action.SHORT_DESCRIPTION, "Aborts ongoing request");
             putValue(Action.ACCELERATOR_KEY, UISupport.getKeyStroke("alt X"));
         }
@@ -888,7 +890,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
             responseEditor.setEnabled(enabled);
         }
 
-        submitButton.setEnabled(enabled);
+        submitButton.setEnabled(enabled && enableSubmit());
         addAssertionButton.setEnabled(enabled);
         propertiesTableComponent.setEnabled(enabled);
         groovyEditor.setEnabled(enabled);
@@ -997,7 +999,7 @@ public class AMFRequestTestStepDesktopPanel extends ModelItemDesktopPanel<AMFReq
                 break;
             }
             case UNKNOWN: {
-                assertionInspector.setIcon(UISupport.createImageIcon("/unknown_assertion.gif"));
+                assertionInspector.setIcon(UISupport.createImageIcon("/unknown_assertion.png"));
                 break;
             }
             case VALID: {

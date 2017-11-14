@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.security.panels;
 
@@ -326,7 +326,7 @@ public class SecurityTestDesktopPanel extends KeySensitiveModelItemDesktopPanel<
 
         runButton = UISupport.createToolbarButton(new RunSecurityTestAction());
         optionsButton = UISupport.createToolbarButton(SwingActionDelegate.createDelegate(
-                SecurityTestOptionsAction.SOAPUI_ACTION_ID, getModelItem(), null, "/options.gif"));
+                SecurityTestOptionsAction.SOAPUI_ACTION_ID, getModelItem(), null, "/preferences.png"));
         optionsButton.setText(null);
         cancelButton = UISupport.createToolbarButton(new CancelRunSecuritytestAction(), false);
 
@@ -399,7 +399,7 @@ public class SecurityTestDesktopPanel extends KeySensitiveModelItemDesktopPanel<
 
     public class RunSecurityTestAction extends AbstractAction {
         public RunSecurityTestAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_testcase.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.png"));
             putValue(Action.SHORT_DESCRIPTION, "Runs this securitytest");
         }
 
@@ -417,7 +417,7 @@ public class SecurityTestDesktopPanel extends KeySensitiveModelItemDesktopPanel<
                 }
             }
             if (shouldRun) {
-                Analytics.trackAction(SoapUIActions.RUN_SECURITY_TEST.getActionName());
+                Analytics.trackAction(SoapUIActions.RUN_SECURITY_TEST_FROM_SECURITY_TEST_PANEL);
                 runSecurityTest();
             } else {
                 UISupport.showInfoMessage("No Security Scans available to run.", "Security Test Warning");
@@ -427,7 +427,7 @@ public class SecurityTestDesktopPanel extends KeySensitiveModelItemDesktopPanel<
 
     public class CancelRunSecuritytestAction extends AbstractAction {
         public CancelRunSecuritytestAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/stop_testcase.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/stop.png"));
             putValue(Action.SHORT_DESCRIPTION, "Stops running this securitytest");
         }
 

@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.support.editor.inspectors.attachments;
 
@@ -162,8 +162,8 @@ public class AttachmentsPanel extends javax.swing.JPanel {
         jPanel1 = UISupport.createSmallToolbar();
 
         if (container instanceof MutableAttachmentContainer) {
-            addFileBtn = UISupport.createToolbarButton(UISupport.createImageIcon("/add_property.gif"));
-            removeBtn = UISupport.createToolbarButton(UISupport.createImageIcon("/remove_property.gif"));
+            addFileBtn = UISupport.createToolbarButton(UISupport.createImageIcon("/add.png"));
+            removeBtn = UISupport.createToolbarButton(UISupport.createImageIcon("/delete.png"));
             reloadBtn = UISupport.createToolbarButton(UISupport.createImageIcon("/reload_properties.gif"));
 
             addFileBtn.setToolTipText("Adds an attachment");
@@ -196,7 +196,7 @@ public class AttachmentsPanel extends javax.swing.JPanel {
             jPanel1.addFixed(reloadBtn);
         }
 
-        exportBtn = UISupport.createToolbarButton(UISupport.createImageIcon("/export.gif"));
+        exportBtn = UISupport.createToolbarButton(UISupport.createImageIcon("/export.png"));
         exportBtn.setToolTipText("Exports the selected attachment to a file");
         exportBtn.setEnabled(false);
         exportBtn.addActionListener(new java.awt.event.ActionListener() {

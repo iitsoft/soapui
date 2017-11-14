@@ -1,18 +1,19 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
+
 package com.eviware.soapui.security.ui;
 
 import com.eviware.soapui.impl.wsdl.support.HelpUrls;
@@ -220,7 +221,7 @@ public class SecurityCheckedParametersTablePanel extends JPanel implements ListS
 
     class AddNewParameterAction extends AbstractAction {
         public AddNewParameterAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/add_property.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/add.png"));
             putValue(Action.SHORT_DESCRIPTION, "Adds a parameter to security scan");
         }
 
@@ -234,7 +235,7 @@ public class SecurityCheckedParametersTablePanel extends JPanel implements ListS
 
     class RemoveParameterAction extends AbstractAction {
         public RemoveParameterAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/remove_property.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/delete.png"));
             putValue(Action.SHORT_DESCRIPTION, "Removes parameter from security scan");
         }
 
@@ -305,7 +306,7 @@ public class SecurityCheckedParametersTablePanel extends JPanel implements ListS
     class CopyParameterAction extends AbstractAction {
 
         public CopyParameterAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/copy_parameters.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/copy.png"));
             putValue(Action.SHORT_DESCRIPTION, "Copies parameter");
         }
 

@@ -1,30 +1,32 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.actions;
 
-import java.io.File;
-
 import com.eviware.soapui.SoapUIExtensionClassLoader;
 import com.eviware.soapui.SoapUIExtensionClassLoader.SoapUIClassLoaderState;
+import com.eviware.soapui.analytics.Analytics;
+import com.eviware.soapui.analytics.SoapUIActions;
 import com.eviware.soapui.impl.WorkspaceImpl;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
 import com.eviware.soapui.support.MessageSupport;
 import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.action.support.AbstractSoapUIAction;
+
+import java.io.File;
 
 /**
  * Actions for importing an existing SoapUI project file into the current
@@ -44,7 +46,7 @@ public class ImportWsdlProjectAction extends AbstractSoapUIAction<WorkspaceImpl>
     public void perform(WorkspaceImpl workspace, Object param) {
         File file = null;
 
-        if (param == null) {
+        if (param == null || param instanceof SoapUIActions) {
             file = UISupport.getFileDialogs().openXML(this, messages.get("prompt.title"));
         } else {
             file = new File(param.toString());
@@ -64,6 +66,11 @@ public class ImportWsdlProjectAction extends AbstractSoapUIAction<WorkspaceImpl>
             WsdlProject project = (WsdlProject) workspace.importProject(fileName);
             if (project != null) {
                 UISupport.select(project);
+            }
+            if (param != null && param instanceof SoapUIActions) {
+                Analytics.trackAction((SoapUIActions) param);
+            } else {
+                Analytics.trackAction(SoapUIActions.IMPORT_PROJECT);
             }
         } catch (Exception ex) {
             UISupport.showErrorMessage(ex);

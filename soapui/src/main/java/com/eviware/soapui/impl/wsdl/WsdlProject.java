@@ -1,23 +1,22 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl;
 
 import com.eviware.soapui.SoapUI;
-import com.eviware.soapui.analytics.Analytics;
 import com.eviware.soapui.analytics.SoapUIActions;
 import com.eviware.soapui.config.InterfaceConfig;
 import com.eviware.soapui.config.MockServiceConfig;
@@ -35,6 +34,7 @@ import com.eviware.soapui.config.TestSuiteRunTypesConfig.Enum;
 import com.eviware.soapui.impl.WorkspaceImpl;
 import com.eviware.soapui.impl.WsdlInterfaceFactory;
 import com.eviware.soapui.impl.rest.DefaultOAuth2ProfileContainer;
+import com.eviware.soapui.impl.rest.OAuth1ProfileContainer;
 import com.eviware.soapui.impl.rest.OAuth2ProfileContainer;
 import com.eviware.soapui.impl.rest.mock.RestMockService;
 import com.eviware.soapui.impl.rest.support.RestRequestConverter.RestConversionException;
@@ -49,6 +49,7 @@ import com.eviware.soapui.impl.wsdl.support.wsdl.UrlWsdlLoader;
 import com.eviware.soapui.impl.wsdl.support.wsdl.WsdlLoader;
 import com.eviware.soapui.impl.wsdl.support.wss.DefaultWssContainer;
 import com.eviware.soapui.impl.wsdl.testcase.WsdlProjectRunner;
+import com.eviware.soapui.impl.wsdl.teststeps.WsdlTestStep;
 import com.eviware.soapui.model.ModelItem;
 import com.eviware.soapui.model.environment.DefaultEnvironment;
 import com.eviware.soapui.model.environment.Environment;
@@ -69,7 +70,9 @@ import com.eviware.soapui.model.support.ModelSupport;
 import com.eviware.soapui.model.testsuite.ProjectRunContext;
 import com.eviware.soapui.model.testsuite.ProjectRunListener;
 import com.eviware.soapui.model.testsuite.ProjectRunner;
+import com.eviware.soapui.model.testsuite.TestCase;
 import com.eviware.soapui.model.testsuite.TestRunnable;
+import com.eviware.soapui.model.testsuite.TestStep;
 import com.eviware.soapui.model.testsuite.TestSuite;
 import com.eviware.soapui.model.testsuite.TestSuite.TestSuiteRunType;
 import com.eviware.soapui.settings.ProjectSettings;
@@ -85,6 +88,7 @@ import com.eviware.soapui.support.scripting.SoapUIScriptEngine;
 import com.eviware.soapui.support.scripting.SoapUIScriptEngineRegistry;
 import com.eviware.soapui.support.types.StringToObjectMap;
 import com.eviware.soapui.support.xml.XmlUtils;
+import com.eviware.soapui.analytics.Analytics;
 import org.apache.commons.ssl.OpenSSL;
 import org.apache.log4j.Logger;
 import org.apache.xmlbeans.XmlError;
@@ -116,7 +120,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.eviware.soapui.impl.wsdl.WsdlProject.ProjectEncryptionStatus.*;
+import static com.eviware.soapui.impl.wsdl.WsdlProject.ProjectEncryptionStatus.ENCRYPTED_BAD_OR_NO_PASSWORD;
+import static com.eviware.soapui.impl.wsdl.WsdlProject.ProjectEncryptionStatus.ENCRYPTED_GOOD_PASSWORD;
+import static com.eviware.soapui.impl.wsdl.WsdlProject.ProjectEncryptionStatus.NOT_ENCRYPTED;
 
 /**
  * WSDL project implementation
@@ -129,11 +135,10 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
     public final static String AFTER_LOAD_SCRIPT_PROPERTY = WsdlProject.class.getName() + "@setupScript";
     public final static String BEFORE_SAVE_SCRIPT_PROPERTY = WsdlProject.class.getName() + "@tearDownScript";
     public final static String RESOURCE_ROOT_PROPERTY = WsdlProject.class.getName() + "@resourceRoot";
+    public static final String ICON_NAME = "/project.png";
+    protected final static Logger log = Logger.getLogger(WsdlProject.class);
     private static final String XML_FILE_TYPE = "XML Files (*.xml)";
     private static final String XML_EXTENSION = ".xml";
-    public static final String ICON_NAME = "/project.gif";
-
-    private WorkspaceImpl workspace;
     protected String path;
     protected List<AbstractInterface<?>> interfaces = new ArrayList<AbstractInterface<?>>();
     protected List<WsdlTestSuite> testSuites = new ArrayList<WsdlTestSuite>();
@@ -141,42 +146,33 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
     protected List<RestMockService> restMockServices = new ArrayList<RestMockService>();
     protected Set<ProjectListener> projectListeners = new HashSet<ProjectListener>();
     protected SoapuiProjectDocumentConfig projectDocument;
+    protected EndpointStrategy endpointStrategy = new DefaultEndpointStrategy();
+    protected long lastModified;
+    protected DefaultWssContainer wssContainer;
+    protected OAuth2ProfileContainer oAuth2ProfileContainer;
+    protected OAuth1ProfileContainer oAuth1ProfileContainer;
+    protected Set<EnvironmentListener> environmentListeners = new HashSet<EnvironmentListener>();
+    protected ProjectEncryptionStatus encryptionStatus = ProjectEncryptionStatus.NOT_ENCRYPTED;
+    protected EndpointSupport endpointSupport;
+    private WorkspaceImpl workspace;
     private ImageIcon disabledIcon;
     private ImageIcon closedIcon;
     private ImageIcon remoteIcon;
     private ImageIcon openEncyptedIcon;
-    protected EndpointStrategy endpointStrategy = new DefaultEndpointStrategy();
-    protected long lastModified;
     private boolean remote;
     private boolean open = true;
     private boolean disabled;
-
     private SoapUIScriptEngine afterLoadScriptEngine;
     private SoapUIScriptEngine beforeSaveScriptEngine;
     private PropertyExpansionContext context = new DefaultPropertyExpansionContext(this);
-    protected DefaultWssContainer wssContainer;
-    protected OAuth2ProfileContainer oAuth2ProfileContainer;
     private String projectPassword = null;
     private String hermesConfig;
     private boolean wrongPasswordSupplied;
-
-    protected Set<EnvironmentListener> environmentListeners = new HashSet<EnvironmentListener>();
-
-    protected ProjectEncryptionStatus encryptionStatus = ProjectEncryptionStatus.NOT_ENCRYPTED;
-
-    public enum ProjectEncryptionStatus {
-        NOT_ENCRYPTED, ENCRYPTED_BAD_OR_NO_PASSWORD, ENCRYPTED_GOOD_PASSWORD;
-    }
-
     private ImageIcon closedEncyptedIcon;
     private SoapUIScriptEngine afterRunScriptEngine;
     private SoapUIScriptEngine beforeRunScriptEngine;
     private Set<ProjectRunListener> runListeners = new HashSet<ProjectRunListener>();
-
     private Environment environment;
-    protected EndpointSupport endpointSupport;
-
-    protected final static Logger log = Logger.getLogger(WsdlProject.class);
 
     public WsdlProject() throws XmlException, IOException, SoapUIException {
         this((WorkspaceImpl) null);
@@ -278,6 +274,23 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         initProjectIcons();
 
         finalizeProjectLoading(open);
+    }
+
+    private static void normalizeLineBreak(File target, File tmpFile) throws IOException {
+        FileReader fr = new FileReader(tmpFile);
+        BufferedReader in = new BufferedReader(fr);
+        FileWriter fw = new FileWriter(target);
+        BufferedWriter out = new BufferedWriter(fw);
+        String line;
+        while ((line = in.readLine()) != null) {
+            out.write(line);
+            out.newLine();
+            out.flush();
+        }
+        out.close();
+        fw.close();
+        in.close();
+        fr.close();
     }
 
     public boolean isRemote() {
@@ -396,6 +409,11 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
             getConfig().addNewOAuth2ProfileContainer();
         }
         oAuth2ProfileContainer = new DefaultOAuth2ProfileContainer(this, getConfig().getOAuth2ProfileContainer());
+
+        if (!getConfig().isSetOAuth1ProfileContainer()) {
+            getConfig().addNewOAuth1ProfileContainer();
+        }
+        oAuth1ProfileContainer = new OAuth1ProfileContainer(this, getConfig().getOAuth1ProfileContainer());
 
 
         endpointStrategy.init(this);
@@ -535,13 +553,6 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         }
     }
 
-    public void setResourceRoot(String resourceRoot) {
-        String old = getResourceRoot();
-
-        getConfig().setResourceRoot(resourceRoot);
-        notifyPropertyChanged(RESOURCE_ROOT_PROPERTY, old, resourceRoot);
-    }
-
     public String getResourceRoot() {
         if (!getConfig().isSetResourceRoot()) {
             getConfig().setResourceRoot("");
@@ -550,12 +561,19 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         return getConfig().getResourceRoot();
     }
 
+    public void setResourceRoot(String resourceRoot) {
+        String old = getResourceRoot();
+
+        getConfig().setResourceRoot(resourceRoot);
+        notifyPropertyChanged(RESOURCE_ROOT_PROPERTY, old, resourceRoot);
+    }
+
     private void initProjectIcons() {
-        closedIcon = UISupport.createImageIcon("/closedProject.gif");
-        remoteIcon = UISupport.createImageIcon("/remoteProject.gif");
-        disabledIcon = UISupport.createImageIcon("/disabledProject.gif");
-        openEncyptedIcon = UISupport.createImageIcon("/openEncryptedProject.gif");
-        closedEncyptedIcon = UISupport.createImageIcon("/closedEncryptedProject.gif");
+        closedIcon = UISupport.createImageIcon("/closed_project.png");
+        remoteIcon = UISupport.createImageIcon("/remote_project.png");
+        disabledIcon = UISupport.createImageIcon("/disabled_project.png");
+        openEncyptedIcon = UISupport.createImageIcon("/encrypted_project.png");
+        closedEncyptedIcon = UISupport.createImageIcon("/disabled_encrypted_project.png");
     }
 
     private void createEmptyProjectConfiguration(String path, String tempName) {
@@ -568,6 +586,7 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         setPropertiesConfig(getConfig().addNewProperties());
         wssContainer = new DefaultWssContainer(this, getConfig().addNewWssContainer());
         oAuth2ProfileContainer = new DefaultOAuth2ProfileContainer(this, getConfig().addNewOAuth2ProfileContainer());
+        oAuth1ProfileContainer = new OAuth1ProfileContainer(this, getConfig().addNewOAuth1ProfileContainer());
     }
 
     private void finalizeProjectLoading(boolean open) {
@@ -872,23 +891,6 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
             }
         }
         return projectDocument.getSoapuiProject();
-    }
-
-    private static void normalizeLineBreak(File target, File tmpFile) throws IOException {
-        FileReader fr = new FileReader(tmpFile);
-        BufferedReader in = new BufferedReader(fr);
-        FileWriter fw = new FileWriter(target);
-        BufferedWriter out = new BufferedWriter(fw);
-        String line;
-        while ((line = in.readLine()) != null) {
-            out.write(line);
-            out.newLine();
-            out.flush();
-        }
-        out.close();
-        fw.close();
-        in.close();
-        fr.close();
     }
 
     public void beforeSave() {
@@ -1213,8 +1215,6 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         addWsdlMockService(mockService);
         fireMockServiceAdded(mockService);
 
-        Analytics.trackAction(SoapUIActions.CREATE_SOAP_MOCK.getActionName());
-
         return mockService;
     }
 
@@ -1227,8 +1227,6 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         mockService.setName(name);
         addRestMockService(mockService);
         fireMockServiceAdded(mockService);
-
-        Analytics.trackAction(SoapUIActions.CREATE_REST_MOCK.getActionName());
 
         return mockService;
     }
@@ -1465,6 +1463,10 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         return list;
     }
 
+    public String getAfterLoadScript() {
+        return getConfig().isSetAfterLoadScript() ? getConfig().getAfterLoadScript().getStringValue() : null;
+    }
+
     public void setAfterLoadScript(String script) {
         String oldScript = getAfterLoadScript();
 
@@ -1480,8 +1482,8 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         notifyPropertyChanged(AFTER_LOAD_SCRIPT_PROPERTY, oldScript, script);
     }
 
-    public String getAfterLoadScript() {
-        return getConfig().isSetAfterLoadScript() ? getConfig().getAfterLoadScript().getStringValue() : null;
+    public String getBeforeSaveScript() {
+        return getConfig().isSetBeforeSaveScript() ? getConfig().getBeforeSaveScript().getStringValue() : null;
     }
 
     public void setBeforeSaveScript(String script) {
@@ -1497,10 +1499,6 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         }
 
         notifyPropertyChanged(BEFORE_SAVE_SCRIPT_PROPERTY, oldScript, script);
-    }
-
-    public String getBeforeSaveScript() {
-        return getConfig().isSetBeforeSaveScript() ? getConfig().getBeforeSaveScript().getStringValue() : null;
     }
 
     public Object runAfterLoadScript() throws Exception {
@@ -1549,6 +1547,10 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         return oAuth2ProfileContainer;
     }
 
+    public OAuth1ProfileContainer getOAuth1ProfileContainer() {
+        return oAuth1ProfileContainer;
+    }
+
     @Override
     public void resolve(ResolveContext<?> context) {
         super.resolve(context);
@@ -1589,6 +1591,13 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         return hermesConfig;
     }
 
+    public void setHermesConfig(String hermesConfigPath) {
+        String oldHermesConfigPath = getSettings().getString(ProjectSettings.HERMES_CONFIG, null);
+        getSettings().setString(ProjectSettings.HERMES_CONFIG, hermesConfigPath);
+        notifyPropertyChanged("hermesConfig", oldHermesConfigPath, hermesConfigPath);
+
+    }
+
     private String resolveHermesConfig() {
         String hermesConfigProperty = getSettings().getString(ProjectSettings.HERMES_CONFIG, null);
         if (hermesConfigProperty != null && !hermesConfigProperty.equals("")) {
@@ -1598,13 +1607,6 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         } else {
             return "${#System#user.home}\\.hermes";
         }
-
-    }
-
-    public void setHermesConfig(String hermesConfigPath) {
-        String oldHermesConfigPath = getSettings().getString(ProjectSettings.HERMES_CONFIG, null);
-        getSettings().setString(ProjectSettings.HERMES_CONFIG, hermesConfigPath);
-        notifyPropertyChanged("hermesConfig", oldHermesConfigPath, hermesConfigPath);
 
     }
 
@@ -1682,9 +1684,10 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         }
 
         TestSuiteDocumentConfig newTestSuiteConfig = null;
-
+        WsdlTestSuite oldTestSuite = null;
         try {
             newTestSuiteConfig = TestSuiteDocumentConfig.Factory.parse(file);
+            oldTestSuite = buildTestSuite(TestSuiteDocumentConfig.Factory.parse(file).getTestSuite());
         } catch (Exception e) {
             SoapUI.logError(e);
         }
@@ -1702,10 +1705,10 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
 			/*
              * security test keeps reference to test step by id, which gets changed
 			 * during importing, so old values needs to be rewritten to new ones.
-			 * 
+			 *
 			 * Create tarnsition table ( old id , new id ) and use it to replace
 			 * all old ids in new imported test case.
-			 * 
+			 *
 			 * Here needs to be done for all test cases separatly.
 			 */
             for (int cnt2 = 0; cnt2 < config.getTestCaseList().size(); cnt2++) {
@@ -1722,6 +1725,18 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
                         if (oldNewIds.containsKey(secStepConfig.getTestStepId())) {
                             secStepConfig.setTestStepId(oldNewIds.get(secStepConfig.getTestStepId()));
                         }
+                    }
+                }
+
+            }
+
+            List<TestCase> testCaseList = testSuite.getTestCaseList();
+            for (int i = 0; i < testCaseList.size(); i++) {
+                TestCase testCase = testCaseList.get(i);
+                for (int j = 0; j < testCase.getTestStepList().size(); j++) {
+                    TestStep testStep = testCase.getTestStepAt(j);
+                    if (testStep instanceof WsdlTestStep) {
+                        ((WsdlTestStep) testStep).afterCopy(oldTestSuite, oldTestSuite.getTestCaseAt(i));
                     }
                 }
 
@@ -1763,16 +1778,16 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
         return WsdlInterfaceFactory.importWsdl(this, url, createRequests, bindingName, wsdlLoader);
     }
 
-    public void setDefaultScriptLanguage(String id) {
-        getConfig().setDefaultScriptLanguage(id);
-    }
-
     public String getDefaultScriptLanguage() {
         if (getConfig().isSetDefaultScriptLanguage()) {
             return getConfig().getDefaultScriptLanguage();
         } else {
             return SoapUIScriptEngineRegistry.DEFAULT_SCRIPT_ENGINE_ID;
         }
+    }
+
+    public void setDefaultScriptLanguage(String id) {
+        getConfig().setDefaultScriptLanguage(id);
     }
 
     public int getIndexOfTestSuite(TestSuite testSuite) {
@@ -1999,6 +2014,10 @@ public class WsdlProject extends AbstractTestPropertyHolderWsdlModelItem<Project
 
     public void removeEnvironmentListener(EnvironmentListener listener) {
         environmentListeners.remove(listener);
+    }
+
+    public enum ProjectEncryptionStatus {
+        NOT_ENCRYPTED, ENCRYPTED_BAD_OR_NO_PASSWORD, ENCRYPTED_GOOD_PASSWORD;
     }
 
 }

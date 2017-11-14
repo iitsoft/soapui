@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.project;
 
@@ -38,7 +38,6 @@ import com.eviware.soapui.support.components.JXToolBar;
 import com.eviware.soapui.support.swing.JTableFactory;
 
 import javax.annotation.Nonnull;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
@@ -699,7 +698,7 @@ public class WSSTabPanel extends JPanel {
 
     private class AddOutgoingWssAction extends AbstractAction {
         public AddOutgoingWssAction() {
-            putValue(SMALL_ICON, UISupport.createImageIcon("/add_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/add.png"));
             putValue(SHORT_DESCRIPTION, "Adds a new Outgoing WSS Configuration");
         }
 
@@ -715,7 +714,7 @@ public class WSSTabPanel extends JPanel {
 
     private class RemoveOutgoingWssAction extends AbstractAction {
         public RemoveOutgoingWssAction() {
-            putValue(SMALL_ICON, UISupport.createImageIcon("/remove_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/delete.png"));
             putValue(SHORT_DESCRIPTION, "Removes the selected Outgoing WSS Configuration");
 
             setEnabled(false);
@@ -737,7 +736,7 @@ public class WSSTabPanel extends JPanel {
     public class AddOutgoingEntryAction extends AbstractAction {
         public AddOutgoingEntryAction() {
             putValue(SHORT_DESCRIPTION, "Adds a new WSS Entry");
-            putValue(SMALL_ICON, UISupport.createImageIcon("/add_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/add.png"));
             setEnabled(false);
         }
 
@@ -758,7 +757,7 @@ public class WSSTabPanel extends JPanel {
     public class RemoveOutgoingEntryAction extends AbstractAction {
         public RemoveOutgoingEntryAction() {
             putValue(SHORT_DESCRIPTION, "Removes the selected WSS-Entry");
-            putValue(SMALL_ICON, UISupport.createImageIcon("/remove_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/delete.png"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -800,7 +799,7 @@ public class WSSTabPanel extends JPanel {
 
     private class AddIncomingWssAction extends AbstractAction {
         public AddIncomingWssAction() {
-            putValue(SMALL_ICON, UISupport.createImageIcon("/add_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/add.png"));
             putValue(SHORT_DESCRIPTION, "Adds a new Incoming WSS Configuration");
         }
 
@@ -816,7 +815,7 @@ public class WSSTabPanel extends JPanel {
 
     private class RemoveIncomingWssAction extends AbstractAction {
         public RemoveIncomingWssAction() {
-            putValue(SMALL_ICON, UISupport.createImageIcon("/remove_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/delete.png"));
             putValue(SHORT_DESCRIPTION, "Removes the selected Incoming WSS Configuration");
 
             setEnabled(false);
@@ -855,7 +854,7 @@ public class WSSTabPanel extends JPanel {
 
         public AddCryptoAction(CryptoType cryptoType) {
             this.cryptoType = cryptoType;
-            putValue(SMALL_ICON, UISupport.createImageIcon("/add_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/add.png"));
             putValue(SHORT_DESCRIPTION, "Adds a new " + cryptoType.toString() + " to this configuration");
         }
 
@@ -877,7 +876,7 @@ public class WSSTabPanel extends JPanel {
 
         public RemoveCryptoAction(CryptoType cryptoType) {
             this.cryptoType = cryptoType;
-            putValue(SMALL_ICON, UISupport.createImageIcon("/remove_property.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/delete.png"));
             putValue(SHORT_DESCRIPTION, "Removes the selected " + cryptoType + " from this configuration");
 
             setEnabled(false);

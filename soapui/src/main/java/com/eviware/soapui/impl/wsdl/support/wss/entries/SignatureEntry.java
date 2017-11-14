@@ -1,47 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.support.wss.entries;
-
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Vector;
-
-import javax.swing.JComponent;
-import javax.swing.JScrollPane;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.WSEncryptionPart;
-import org.apache.ws.security.WSSecurityException;
-import org.apache.ws.security.message.DOMCallbackLookup;
-import org.apache.ws.security.message.WSSecHeader;
-import org.apache.ws.security.message.WSSecSignature;
-import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.apache.xml.security.signature.XMLSignature;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.config.WSSEntryConfig;
@@ -58,6 +31,33 @@ import com.eviware.soapui.support.xml.XmlObjectConfigurationBuilder;
 import com.eviware.soapui.support.xml.XmlObjectConfigurationReader;
 import com.eviware.soapui.support.xml.XmlUtils;
 import com.jgoodies.binding.PresentationModel;
+import org.apache.ws.security.WSConstants;
+import org.apache.ws.security.WSEncryptionPart;
+import org.apache.ws.security.WSSecurityException;
+import org.apache.ws.security.message.DOMCallbackLookup;
+import org.apache.ws.security.message.WSSecHeader;
+import org.apache.ws.security.message.WSSecSignature;
+import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
+import org.apache.xml.security.signature.XMLSignature;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Vector;
 
 public class SignatureEntry extends WssEntryBase {
     private static final String DEFAULT_OPTION = "<default>";
@@ -68,9 +68,14 @@ public class SignatureEntry extends WssEntryBase {
     private boolean useSingleCert;
     private String signatureCanonicalization;
     private String digestAlgorithm;
+    private String customTokenValueType;
+    private String customTokenId;
     private List<StringToStringMap> parts = new ArrayList<StringToStringMap>();
     private com.eviware.soapui.impl.wsdl.support.wss.entries.WssEntryBase.KeyAliasComboBoxModel keyAliasComboBoxModel;
     private com.eviware.soapui.impl.wsdl.support.wss.entries.SignatureEntry.InternalWssContainerListener wssContainerListener;
+
+    private JTextField customTokenValueTypeField;
+    private JTextField customTokenIdField;
 
     public void init(WSSEntryConfig config, OutgoingWss container) {
         super.init(config, container, TYPE);
@@ -97,8 +102,15 @@ public class SignatureEntry extends WssEntryBase {
 
         form.appendPasswordField("password", "Password", "The certificate password");
 
-        form.appendComboBox("keyIdentifierType", "Key Identifier Type", new Integer[]{1, 2, 3, 4, 8},
-                "Sets which key identifier to use").setRenderer(new KeyIdentifierTypeRenderer());
+        JComboBox keyIdentifierTypeComboBox = form.appendComboBox("keyIdentifierType", "Key Identifier Type", new Integer[]{1, 2, 3, 4, 8, 12},
+                "Sets which key identifier to use");
+        keyIdentifierTypeComboBox.setRenderer(new KeyIdentifierTypeRenderer());
+        keyIdentifierTypeComboBox.addItemListener(new ItemListener() {
+            	@Override
+            	public void itemStateChanged(ItemEvent e) {
+                    initCustomTokenState();
+                }
+        });
         form.appendComboBox("signatureAlgorithm", "Signature Algorithm", new String[]{DEFAULT_OPTION, WSConstants.RSA,
                 WSConstants.DSA, XMLSignature.ALGO_ID_MAC_HMAC_SHA1, XMLSignature.ALGO_ID_MAC_HMAC_SHA256,
                 XMLSignature.ALGO_ID_MAC_HMAC_SHA384, XMLSignature.ALGO_ID_MAC_HMAC_SHA512,
@@ -119,6 +131,10 @@ public class SignatureEntry extends WssEntryBase {
 
         form.appendCheckBox("useSingleCert", "Use Single Certificate", "Use single certificate for signing");
 
+        customTokenIdField = form.appendTextField("customTokenId", "Custom Key Identifier", "Use a custom key identifier for signing");
+        customTokenValueTypeField = form.appendTextField("customTokenValueType", "Custom Key Identifier ValueType", "Specify the custom key identifier value type");
+        initCustomTokenState();
+
         form.append("Parts", new WSPartsTable(parts, this));
 
         return new JScrollPane(form.getPanel());
@@ -131,6 +147,12 @@ public class SignatureEntry extends WssEntryBase {
         }
     }
 
+    private void initCustomTokenState() {
+        boolean enabled = keyIdentifierType == WSConstants.CUSTOM_KEY_IDENTIFIER;
+        customTokenValueTypeField.setEnabled(enabled);
+        customTokenIdField.setEnabled(enabled);
+    }
+
     @Override
     protected void load(XmlObjectConfigurationReader reader) {
         crypto = reader.readString("crypto", null);
@@ -140,6 +162,9 @@ public class SignatureEntry extends WssEntryBase {
         useSingleCert = reader.readBoolean("useSingleCert", false);
 
         digestAlgorithm = reader.readString("digestAlgorithm", null);
+
+        customTokenValueType = reader.readString( "customTokenValueType", null );
+        customTokenId = reader.readString("customTokenId", null);
 
         parts = readTableValues(reader, "signaturePart");
     }
@@ -153,6 +178,9 @@ public class SignatureEntry extends WssEntryBase {
         builder.add("useSingleCert", useSingleCert);
 
         builder.add("digestAlgorithm", digestAlgorithm);
+
+        builder.add( "customTokenValueType", customTokenValueType );
+        builder.add( "customTokenId", customTokenId );
 
         saveTableValues(builder, parts, "signaturePart");
     }
@@ -187,6 +215,16 @@ public class SignatureEntry extends WssEntryBase {
 
             if (StringUtils.hasContent(digestAlgorithm)) {
                 wssSign.setDigestAlgo(digestAlgorithm);
+            }
+
+            if (keyIdentifierType == WSConstants.CUSTOM_KEY_IDENTIFIER) {
+                if(StringUtils.hasContent( customTokenId )) {
+                    wssSign.setCustomTokenId(context.expand(customTokenId));
+                }
+
+                if(StringUtils.hasContent(customTokenValueType )) {
+                    wssSign.setCustomTokenValueType(context.expand(customTokenValueType));
+                }
             }
 
             Vector<WSEncryptionPart> wsParts = createWSParts(parts);
@@ -281,6 +319,24 @@ public class SignatureEntry extends WssEntryBase {
 
     public void setUseSingleCert(boolean useSingleCert) {
         this.useSingleCert = useSingleCert;
+        saveConfig();
+    }
+
+    public String getCustomTokenId() {
+        return customTokenId;
+    }
+
+    public void setCustomTokenId(String customTokenId) {
+        this.customTokenId = customTokenId;
+        saveConfig();
+    }
+
+    public String getCustomTokenValueType() {
+        return customTokenValueType;
+    }
+
+    public void setCustomTokenValueType(String customTokenValueType) {
+        this.customTokenValueType = customTokenValueType;
         saveConfig();
     }
 

@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.monitor;
 
@@ -385,22 +385,22 @@ public class SoapMonitor extends JPanel {
     private JComponent buildToolbars(JXToolBar mainToolbar) {
         toolbar = UISupport.createSmallToolbar();
         mainToolbar.addFixed(startButton = UISupport.createToolbarButton(UISupport
-                .createImageIcon("/run_testcase.gif")));
+                .createImageIcon("/start.png")));
         mainToolbar.addFixed(stopButton = UISupport.createToolbarButton(UISupport
-                .createImageIcon("/stop_testcase.gif")));
+                .createImageIcon("/stop.png")));
         mainToolbar.addFixed(optionsButton = UISupport.createToolbarButton(new SoapMonitorOptionsAction()));
 
         toolbar
-                .addFixed(createRequestButton = UISupport.createToolbarButton(UISupport.createImageIcon("/request.gif")));
+                .addFixed(createRequestButton = UISupport.createToolbarButton(UISupport.createImageIcon("/soap_request.png")));
         toolbar.addFixed(addToTestCaseButton = UISupport.createToolbarButton(UISupport
-                .createImageIcon("/testCase.gif")));
+                .createImageIcon("/testcase.png")));
         // toolbar.addFixed( addToRestTestCaseButton =
         // UISupport.createToolbarButton( UISupport
-        // .createImageIcon( "/testCase.gif" ) ) );
+        // .createImageIcon( "/testcase.png" ) ) );
         toolbar.addFixed(addToMockServiceButton = UISupport.createToolbarButton(UISupport
-                .createImageIcon("/mockService.gif")));
+                .createImageIcon("/soap_virt.png")));
         toolbar
-                .addFixed(clearButton = UISupport.createToolbarButton(UISupport.createImageIcon("/clear_loadtest.gif")));
+                .addFixed(clearButton = UISupport.createToolbarButton(UISupport.createImageIcon("/clear.png")));
 
         startButton.setToolTipText("Starts the HTTP Monitor as configured");
         stopButton.setToolTipText("Stops the HTTP Monitor");
@@ -1102,7 +1102,7 @@ public class SoapMonitor extends JPanel {
     public class SoapMonitorOptionsAction extends AbstractAction {
 
         public SoapMonitorOptionsAction() {
-            putValue(SMALL_ICON, UISupport.createImageIcon("/options.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/preferences.png"));
         }
 
         public void actionPerformed(ActionEvent e) {

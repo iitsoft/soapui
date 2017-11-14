@@ -1,25 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.teststeps.assertions.basic;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.xmlbeans.XmlObject;
 
 import com.eviware.soapui.config.TestAssertionConfig;
 import com.eviware.soapui.impl.wsdl.panels.assertions.AssertionCategoryMapping;
@@ -47,6 +42,15 @@ import com.eviware.x.form.XForm;
 import com.eviware.x.form.XFormDialog;
 import com.eviware.x.form.XFormDialogBuilder;
 import com.eviware.x.form.XFormFactory;
+import com.eviware.x.impl.swing.SwingXFormImpl;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+import org.apache.xmlbeans.XmlObject;
+
+import javax.swing.JPanel;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Assertion that checks for the non-existence of a specified text token in the
@@ -66,6 +70,7 @@ public class SimpleNotContainsAssertion extends WsdlMessageAssertion implements 
     private static final String USE_REGEX = "Regular Expression";
     public static final String LABEL = "Not Contains";
     public static final String DESCRIPTION = "Searches for the non-existence of a string token in the property value, supports regular expressions. Applicable to any property.";
+    private static CellConstraints cc = new CellConstraints();
 
     public SimpleNotContainsAssertion(TestAssertionConfig assertionConfig, Assertable assertable) {
         super(assertionConfig, assertable, true, true, true, true);
@@ -74,6 +79,15 @@ public class SimpleNotContainsAssertion extends WsdlMessageAssertion implements 
         token = reader.readString("token", null);
         ignoreCase = reader.readBoolean("ignoreCase", false);
         useRegEx = reader.readBoolean("useRegEx", false);
+    }
+
+    public void setUseRegEx(boolean useRegEx) {
+        this.useRegEx = useRegEx;
+        setConfiguration(createConfiguration());
+    }
+
+    public boolean isUseRegEx() {
+        return useRegEx;
     }
 
     public String internalAssertResponse(MessageExchange messageExchange, SubmitContext context)
@@ -161,9 +175,15 @@ public class SimpleNotContainsAssertion extends WsdlMessageAssertion implements 
 
     private void buildDialog() {
         XFormDialogBuilder builder = XFormFactory.createDialogBuilder("NotContains Assertion");
-        XForm mainForm = builder.createForm("Basic");
+        XForm mainForm = builder.createForm("Basic", new FormLayout("5px,left:pref,5px,fill:default:grow(1.0),5px"));
+        JPanel mainFormPanel = ((SwingXFormImpl) mainForm).getPanel();
+        FormLayout mainFormLayout = (FormLayout) mainFormPanel.getLayout();
 
         mainForm.addTextField(CONTENT, "Content to check for", XForm.FieldType.TEXTAREA).setWidth(40);
+
+        mainFormLayout.setRowSpec(mainFormLayout.getRowCount(), new RowSpec("top:default:grow(1.0)"));
+        mainFormPanel.add(mainFormPanel.getComponent(mainFormPanel.getComponents().length-1),cc.xy(4,mainFormLayout.getRowCount(),"fill,fill"));
+
         mainForm.addCheckBox(IGNORE_CASE, "Ignore case in comparison");
         mainForm.addCheckBox(USE_REGEX, "Use token as Regular Expression");
 

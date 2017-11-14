@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui;
 
@@ -20,11 +20,19 @@ import com.eviware.soapui.actions.SaveAllProjectsAction;
 import com.eviware.soapui.actions.ShowSystemPropertiesAction;
 import com.eviware.soapui.actions.SoapUIPreferencesAction;
 import com.eviware.soapui.actions.StartHermesJMSButtonAction;
+import com.eviware.soapui.actions.SumbitUserInfoAction;
 import com.eviware.soapui.actions.SwitchDesktopPanelAction;
 import com.eviware.soapui.actions.VersionUpdateAction;
 import com.eviware.soapui.analytics.Analytics;
+import com.eviware.soapui.analytics.AnalyticsHelper;
+import com.eviware.soapui.analytics.SoapUIActions;
+import com.eviware.soapui.analytics.UniqueUserIdentifier;
+import com.eviware.soapui.autoupdate.SoapUIAutoUpdaterUtils;
+import com.eviware.soapui.autoupdate.SoapUIUpdateProvider;
 import com.eviware.soapui.impl.WorkspaceImpl;
 import com.eviware.soapui.impl.actions.ImportWsdlProjectAction;
+import com.eviware.soapui.impl.actions.NewEmptyProjectAction;
+import com.eviware.soapui.impl.actions.NewRestProjectAction;
 import com.eviware.soapui.impl.actions.NewWsdlProjectAction;
 import com.eviware.soapui.impl.rest.actions.project.NewRestServiceAction;
 import com.eviware.soapui.impl.support.actions.ShowOnlineHelpAction;
@@ -48,7 +56,6 @@ import com.eviware.soapui.impl.wsdl.panels.teststeps.support.PropertyHolderTable
 import com.eviware.soapui.impl.wsdl.submit.transports.jms.util.HermesUtils;
 import com.eviware.soapui.impl.wsdl.support.HelpUrls;
 import com.eviware.soapui.impl.wsdl.support.http.ProxyUtils;
-import com.eviware.soapui.integration.impl.CajoServer;
 import com.eviware.soapui.model.ModelItem;
 import com.eviware.soapui.model.PanelBuilder;
 import com.eviware.soapui.model.TestPropertyHolder;
@@ -64,12 +71,10 @@ import com.eviware.soapui.model.workspace.Workspace;
 import com.eviware.soapui.model.workspace.WorkspaceFactory;
 import com.eviware.soapui.monitor.MockEngine;
 import com.eviware.soapui.monitor.TestMonitor;
-import com.eviware.soapui.settings.LoadUISettings;
 import com.eviware.soapui.settings.ProxySettings;
 import com.eviware.soapui.settings.UISettings;
 import com.eviware.soapui.settings.VersionUpdateSettings;
 import com.eviware.soapui.support.SoapUIException;
-import com.eviware.soapui.support.SoapUIVersionUpdate;
 import com.eviware.soapui.support.StringUtils;
 import com.eviware.soapui.support.Tools;
 import com.eviware.soapui.support.UISupport;
@@ -97,6 +102,7 @@ import com.eviware.soapui.support.log.LogDisablingTestMonitorListener;
 import com.eviware.soapui.support.monitor.MonitorPanel;
 import com.eviware.soapui.support.monitor.RuntimeMemoryMonitorSource;
 import com.eviware.soapui.support.preferences.UserPreferences;
+import com.eviware.soapui.support.swing.MenuBuilderHelper;
 import com.eviware.soapui.support.swing.MenuScroller;
 import com.eviware.soapui.support.types.StringToStringMap;
 import com.eviware.soapui.tools.CmdLineRunner;
@@ -114,6 +120,7 @@ import com.eviware.x.impl.swing.SwingDialogs;
 import com.google.common.base.Objects;
 import com.jgoodies.looks.HeaderStyle;
 import com.jgoodies.looks.Options;
+import com.smartbear.analytics.AnalyticsManager;
 import javafx.application.Platform;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -139,9 +146,12 @@ import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
@@ -161,6 +171,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
@@ -170,31 +181,38 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.BackingStoreException;
 
+import static com.eviware.soapui.analytics.SoapUIActions.CREATE_EMPTY_PROJECT_FROM_TOOLBAR;
+import static com.eviware.soapui.analytics.SoapUIActions.CREATE_REST_PROJECT_FROM_TOOLBAR;
+import static com.eviware.soapui.analytics.SoapUIActions.CREATE_SOAP_PROJECT_FROM_TOOLBAR;
+import static com.eviware.soapui.analytics.SoapUIActions.IMPORT_PREFERENCES;
+import static com.eviware.soapui.analytics.SoapUIActions.IMPORT_PROJECT_FROM_TOOLBAR;
+import static com.eviware.soapui.analytics.SoapUIActions.OPEN_PREFERENCES_FROM_TOOLBAR;
+import static com.eviware.soapui.analytics.SoapUIActions.SAVE_ALL_PROJECTS_FROM_TOOLBAR;
+import static com.eviware.soapui.analytics.SoapUIActions.SAVE_PREFERENCES;
+import static com.eviware.soapui.analytics.SoapUIActions.TURN_OFF_PROXY_FROM_TOOLBAR;
+import static com.eviware.soapui.analytics.SoapUIActions.TURN_ON_PROXY_FROM_TOOLBAR;
 import static com.eviware.soapui.impl.support.HttpUtils.urlEncodeWithUtf8;
 
 /**
  * Main SoapUI entry point.
  */
-
 public class SoapUI {
     // ------------------------------ CONSTANTS ------------------------------
     public static final String DEFAULT_DESKTOP = "Default";
     public static final String CURRENT_SOAPUI_WORKSPACE = SoapUI.class.getName() + "@workspace";
     public final static Logger log = Logger.getLogger(SoapUI.class);
     public final static String SOAPUI_VERSION = getVersion(SoapUISystemProperties.VERSION);
+    public final static String PRODUCT_NAME = "SoapUI";
     public static final String DEFAULT_WORKSPACE_FILE = "default-soapui-workspace.xml";
-    public static final String SOAPUI_SPLASH = "soapui-splash.png";
+    public static final String SOAPUI_SPLASH = "SoapUI-Spashscreen.png";
     public static final String SOAPUI_TITLE = "/branded/branded.properties";
     public static final String PROPERTIES_TAB_PANEL_NAME = "PropertiesTabPanel";
-    private static final String PROXY_ENABLED_ICON = "/proxyEnabled.png";
-    private static final String PROXY_DISABLED_ICON = "/proxyDisabled.png";
+    private static final String PROXY_ENABLED_ICON = "/Proxy_Turned-on.png";
+    private static final String PROXY_DISABLED_ICON = "/Proxy_Turned-off.png";
     public static final String BUILDINFO_PROPERTIES = "/buildinfo.properties";
-    public static final String SOAPUI_WELCOME_PAGE = "http://www.soapui.org/Downloads/thank-you-for-downloading-soapui.html";
     public static final String STARTER_PAGE_HEADER = "SoapUI Starter Page";
     public static final String STARTER_PAGE_TOOL_TIP = "Info on SoapUI";
-    public static String STARTER_PAGE_URL = "http://soapui.org/Appindex/soapui-starterpage.html?version="
-            + urlEncodeWithUtf8(SOAPUI_VERSION);
-    public static String FRAME_ICON = "/soapui-icon-16.png;/soapui-icon-24.png;/soapui-icon-32.png;/soapui-icon-48.png;/soapui-icon-256.png";
+    public static String FRAME_ICON = "/SoapUI-OS-5.2_16-16.png;/SoapUI-OS-5.2_24-24.png;/SoapUI-OS-5.2_32-32.png;/SoapUI-OS-5.2_48-48.png;/SoapUI-OS-5.2_256-256.png";
 
     public static String STARTER_PAGE_ERROR_URL = "file://" + System.getProperty("soapui.home", ".")
             + "/starter-page.html";
@@ -203,7 +221,15 @@ public class SoapUI {
     private static final int DEFAULT_MAX_THREADPOOL_SIZE = 200;
     private static final String BROWSER_DISABLED_SYSTEM_PROPERTY = "soapui.browser.disabled";
 
+    public static final String PROJECT = "Project";
+    public static final String SUITE = "Suite";
+    public static final String STEP = "Step";
+    public static final String CASE = "Case";
 
+    public static final String ENABLED_PROJECT_ACTIONS = "EnabledWsdlProjectActions";
+    public static final String TEST_SUITE_ACTIONS = "WsdlTestSuiteActions";
+    public static final String TEST_CASE_ACTIONS = "WsdlTestCaseActions";
+    public static final String TEST_STEP_ACTIONS = "WsdlTestStepActions";
     // ------------------------------ FIELDS ------------------------------
 
     private static List<Object> logCache = new ArrayList<Object>();
@@ -299,17 +325,14 @@ public class SoapUI {
         log.info("Used java version: " + System.getProperty("java.version"));
         frame.addWindowListener(new MainFrameWindowListener());
         UISupport.setMainFrame(frame);
-
         navigator = new Navigator(workspace);
         navigator.addNavigatorListener(new InternalNavigatorListener());
-
         desktopPanelsList = new JDesktopPanelsList(desktop);
 
         mainInspector = JInspectorPanelFactory.build(buildContentPanel(), SwingConstants.LEFT);
         mainInspector.addInspector(new JComponentInspector<JComponent>(buildMainPanel(), "Navigator",
                 "The SoapUI Navigator", true));
         mainInspector.setCurrentInspector("Navigator");
-
         frame.setJMenuBar(buildMainMenu());
         frame.getContentPane().add(buildToolbar(), BorderLayout.NORTH);
         frame.getContentPane().add(mainInspector.getComponent(), BorderLayout.CENTER);
@@ -336,31 +359,40 @@ public class SoapUI {
 
     private JComponent buildToolbar() {
         mainToolbar = new JXToolBar();
+        UISupport.setPreferredHeight(mainToolbar, JXToolBar.MAIN_COMPONENT_HEIGHT);
         mainToolbar.setFloatable(false);
         mainToolbar.setRollover(true);
         mainToolbar.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.BOTH);
-        mainToolbar.add(new NewWsdlProjectActionDelegate());
+        mainToolbar.addSpace(20);
+        mainToolbar.add(new NewProjectActionDelegate("/new-empty-project-icon.png", "Empty", NewEmptyProjectAction.SOAPUI_ACTION_ID, CREATE_EMPTY_PROJECT_FROM_TOOLBAR));
+        mainToolbar.add(new NewProjectActionDelegate("/new-soap-project-icon.png", "SOAP", NewWsdlProjectAction.SOAPUI_ACTION_ID, CREATE_SOAP_PROJECT_FROM_TOOLBAR));
+        mainToolbar.add(new NewProjectActionDelegate("/new-rest-project-icon.png", "REST", NewRestProjectAction.SOAPUI_ACTION_ID, CREATE_REST_PROJECT_FROM_TOOLBAR));
         mainToolbar.add(new ImportWsdlProjectActionDelegate());
         mainToolbar.add(new SaveAllActionDelegate());
         mainToolbar.addSpace(2);
-        mainToolbar.add(new ShowOnlineHelpAction("Forum", HelpUrls.FORUMS_HELP_URL,
-                "Opens the SoapUI Forum in a browser", "/group_go.png"));
+        mainToolbar.add(new ShowOnlineHelpAction("Forum", HelpUrls.COMMUNITY_HELP_URL,
+                "Opens the SoapUI Forum in a browser", "/forum.png"));
         mainToolbar.addSpace(2);
         mainToolbar.add(new ShowOnlineHelpAction("Trial", HelpUrls.TRIAL_URL, "Apply for SoapUI Pro Trial License",
-                "/favicon.png"));
-        mainToolbar.addSpace(2);
+                "/Trial.png"));
         mainToolbar.add(new PreferencesActionDelegate());
         applyProxyButton = (JToggleButton) mainToolbar.add(new JToggleButton(new ApplyProxyButtonAction()));
         updateProxyButtonAndTooltip();
 
         mainToolbar.addGlue();
-
-        searchField = new JTextField(20);
+        searchField = new JTextField(20) {
+            @Override
+            public void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Color.LIGHT_GRAY);
+                g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+            }
+        };
         searchField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == '\n') {
-                    doForumSearch(searchField.getText());
+                    doCommunitySearch(searchField.getText());
                 }
             }
         });
@@ -375,40 +407,54 @@ public class SoapUI {
         mainToolbar.addFixed(searchField);
         mainToolbar.add(new ToolbarForumSearchAction());
         mainToolbar.add(new ShowOnlineHelpAction(HelpUrls.USERGUIDE_HELP_URL));
-
         for (int i = 0; i < mainToolbar.getComponentCount(); i++) {
             if (mainToolbar.getComponent(i) instanceof JComponent) {
                 ((JComponent) mainToolbar.getComponent(i)).setBorder(BorderFactory.createEmptyBorder(4, 2, 4, 2));
             }
         }
-
-        mainToolbar.setBorder(BorderFactory.createEmptyBorder(3, 1, 3, 1));
-
+        mainToolbar.setBorder(BorderFactory.createEmptyBorder());
         return mainToolbar;
     }
 
-    @SuppressWarnings("deprecation")
-    public void doForumSearch(String text) {
-        if (!searchField.getText().equals(text)) {
-            searchField.setText(text);
-        }
+    //TODO Replace with the community API-based search
+    public static void doCommunitySearch(String text) {
+
+        String prefix = "/t5/forums/searchpage/tab/message?include_forums=true";
+        String forum = "location=board%3ASoapUI_OS";
+        String suffix = "&search_type=thread&filter=labels%2Clocation";
+
+        String searchText = "&q=" + urlEncodeWithUtf8(text.trim());
+
+        String searchUrl = HelpUrls.COMMUNITY_SEARCH_URL + prefix + forum + searchText + suffix;
 
         if (StringUtils.hasContent(text)) {
-            Tools.openURL(HelpUrls.FORUMS_HELP_URL + "search.php?keywords=" + urlEncodeWithUtf8(text.trim()));
+            Tools.openURL(searchUrl);
         } else {
-            Tools.openURL(HelpUrls.FORUMS_HELP_URL);
+            Tools.openURL(HelpUrls.COMMUNITY_SEARCH_URL);
         }
     }
 
-    private JMenuBar buildMainMenu() {
-        menuBar = new JMenuBar();
-        menuBar.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.BOTH);
 
+    private JMenuBar buildMainMenu() {
+        menuBar = new JMenuBar() {
+            @Override
+            public void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(Color.WHITE);
+                g.fillRect(0, 0, getWidth(), getHeight());
+                g.setColor(Color.LIGHT_GRAY);
+                g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+            }
+        };
+        menuBar.setBorder(BorderFactory.createEmptyBorder());
         menuBar.add(buildFileMenu());
+        menuBar.add(buildProjectMenu());
+        menuBar.add(buildSuiteMenu());
+        menuBar.add(buildCaseMenu());
+        menuBar.add(buildStepMenu());
         menuBar.add(buildToolsMenu());
         menuBar.add(buildDesktopMenu());
         menuBar.add(buildHelpMenu());
-
         return menuBar;
     }
 
@@ -426,10 +472,28 @@ public class SoapUI {
         desktopMenu.add(new SwitchDesktopPanelAction(desktopPanelsList));
         desktopMenu.add(new MaximizeDesktopAction((InspectorLog4JMonitor) logMonitor));
         desktopMenu.addSeparator();
-
         ActionSupport.addActions(desktop.getActions(), desktopMenu);
-
         return desktopMenu;
+    }
+
+    private JMenu buildProjectMenu() {
+        JMenu projectMenu = MenuBuilderHelper.buildMenuForWorkspace(new JMenu(PROJECT), ENABLED_PROJECT_ACTIONS);
+        return projectMenu;
+    }
+
+    private JMenu buildSuiteMenu() {
+        JMenu suiteMenu = MenuBuilderHelper.buildMenuForWorkspace(new JMenu(SUITE), TEST_SUITE_ACTIONS);
+        return suiteMenu;
+    }
+
+    private JMenu buildCaseMenu() {
+        JMenu caseMenu = MenuBuilderHelper.buildMenuForWorkspace(new JMenu(CASE), TEST_CASE_ACTIONS);
+        return caseMenu;
+    }
+
+    private JMenu buildStepMenu() {
+        JMenu stepMenu = MenuBuilderHelper.buildMenuForWorkspace(new JMenu(STEP), TEST_STEP_ACTIONS);
+        return stepMenu;
     }
 
     private JMenu buildHelpMenu() {
@@ -447,10 +511,11 @@ public class SoapUI {
         helpMenu.add(new VersionUpdateAction());
         helpMenu.addSeparator();
         helpMenu.add(new ShowOnlineHelpAction("SoapUI Pro Trial", HelpUrls.TRIAL_URL,
-                "Apply for SoapUI Pro Trial License", "/favicon.png"));
+                "Apply for SoapUI Pro Trial License", "/SoapUI-OS-5.2_16-16.png"));
+        helpMenu.add(new OpenUrlAction("Privacy Policy", "http://www.soapui.org" + HelpUrls.SMARTBEAR_PRIVACY_POLICY_URL));
         helpMenu.addSeparator();
         helpMenu.add(new OpenUrlAction("soapui.org", "http://www.soapui.org"));
-        helpMenu.add(new OpenUrlAction("smartbear.com", "http://smartbear.com"));
+        helpMenu.add(new OpenUrlAction("smartbear.com", HelpUrls.SMARTBEAR_WEB_SITE_START_PAGE));
         helpMenu.addSeparator();
         helpMenu.add(new AboutAction());
         return helpMenu;
@@ -558,14 +623,11 @@ public class SoapUI {
         inspectorPanel.setDividerLocation(500);
         inspectorPanel.setResizeWeight(0.6);
         inspectorPanel.setCurrentInspector("Properties");
-
         return inspectorPanel.getComponent();
     }
 
     private JComponent buildOverviewPanel() {
         overviewPanel = new JPanel(new BorderLayout());
-        overviewPanel.setBorder(BorderFactory.createEmptyBorder(3, 0, 0, 2));
-
         return overviewPanel;
     }
 
@@ -648,6 +710,13 @@ public class SoapUI {
 
     private static final class SoapUIRunner implements Runnable {
         public void run() {
+            boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().
+                    getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+            SoapUIUpdateProvider updateProvider = SoapUIAutoUpdaterUtils.getProvider();
+            if (!isDebug && SoapUI.getSettings().getBoolean(VersionUpdateSettings.AUTO_CHECK_VERSION_UPDATE)) {
+                updateProvider.start();
+            }
+
             addStandardPreferencesShortcutOnMac();
             boolean isFirstLaunch = !DefaultSoapUICore.settingsFileExists();
             Properties props = new Properties();
@@ -671,34 +740,16 @@ public class SoapUI {
                     });
                 }
 
-                if (isAutoUpdateVersion()) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            new SoapUIVersionUpdate().checkForNewVersion(false);
-                        }
-                    }).start();
-                }
-
-                startCajoServerIfNotOverriddenBySetting();
                 if (isFirstLaunch) {
-                    Tools.openURL(SOAPUI_WELCOME_PAGE);
+                    Tools.openURL(HelpUrls.SOAPUI_WELCOME_PAGE);
                 }
 
                 if (isCommandLine()) {
-                    Analytics.trackAction("CmdLine");
+                    Analytics.trackAction(SoapUIActions.PRODUCT_STARTED_FROM_CMD);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
-            }
-        }
-
-        private void startCajoServerIfNotOverriddenBySetting() {
-            if (!getSettings().isSet(LoadUISettings.START_CAJO_SERVER_AT_STARTUP) || getSettings().getBoolean(LoadUISettings.START_CAJO_SERVER_AT_STARTUP)) {
-                CajoServer.getInstance().start();
-            } else {
-                log.info("Cajo server not started because setting '" + LoadUISettings.START_CAJO_SERVER_AT_STARTUP + "' is false.");
             }
         }
     }
@@ -773,15 +824,33 @@ public class SoapUI {
         }
     }
 
+    private static void setBackgroundsToWhite() {
+        UIManager.put("Button.background", Color.WHITE);
+        UIManager.put("Panel.background", Color.WHITE);
+        UIManager.put("MenuBar.background", Color.WHITE);
+        UIManager.put("ComboBox.background", Color.WHITE);
+        UIManager.put("TableHeader.background", Color.WHITE);
+        UIManager.put("ToolBar.background", Color.WHITE);
+        UIManager.put("TabbedPane.background", Color.LIGHT_GRAY);
+        UIManager.put("TabbedPane.selected", Color.WHITE);
+        UIManager.put("Label.background", Color.WHITE);
+        UIManager.put("CheckBox.background", Color.WHITE);
+        UIManager.put("Desktop.background", Color.WHITE);
+        UIManager.put("ProgressBar.background", Color.WHITE);
+        UIManager.put("InternalFrame.background", Color.WHITE);
+        UIManager.put("SplitPane.background", Color.WHITE);
+        UIManager.put("ScrollBar.background", Color.WHITE);
+        UIManager.put("Spinner.background", Color.WHITE);
+        UIManager.put("OptionPane.background", Color.WHITE);
+        UIManager.put("ToggleButton.background", Color.WHITE);
+        UIManager.put("Slider.background", Color.WHITE);
+        UIManager.put("RadioButton.background", Color.WHITE);
+        UIManager.put("ScrollPane.background", Color.WHITE);
+    }
+
     public static void main(String[] args) throws Exception {
-        boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().
-                getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
-        if (isDebug) {
-            Analytics.trackAction("DebuggingMode");
-        }
-
         WebstartUtilCore.init();
-
+        setBackgroundsToWhite();
         mainArgs = args;
 
         SoapUIRunner soapuiRunner = new SoapUIRunner();
@@ -806,6 +875,16 @@ public class SoapUI {
 
         isStandalone = true;
         soapUICore = core;
+
+        AnalyticsHelper.initializeAnalytics();
+        Analytics.trackSessionStart();
+        boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().
+                getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+        if (isDebug) {
+            Analytics.trackAction(SoapUIActions.PRODUCT_STARTED_IN_DEBUGGING_MODE);
+        } else {
+            Analytics.trackAction(SoapUIActions.PRODUCT_STARTED);
+        }
 
         SoapUI soapUI = new SoapUI();
         Workspace workspace = null;
@@ -853,6 +932,14 @@ public class SoapUI {
                     SwingUtilities.invokeLater(new RestProjectCreator(url));
                 } catch (Exception ignore) {
                 }
+            }
+        }
+
+        if (SoapUI.usingGraphicalEnvironment()) {
+            if (workspace.isSupportInformationDialog()) {
+                SumbitUserInfoAction collector = new SumbitUserInfoAction();
+                collector.show();
+                workspace.setSupportInformationDialog(false);
             }
         }
         return soapUI;
@@ -1001,16 +1088,17 @@ public class SoapUI {
                 SoapUI.logError(e1);
             }
 
-            Analytics.trackAction("Exit");
+            Analytics.trackAction(SoapUIActions.EXIT);
         } else {
             if (!UISupport.confirm("Exit SoapUI without saving?", "Question")) {
                 saveOnExit = true;
                 return false;
             }
-            Analytics.trackAction("ExitWithoutSave");
+            Analytics.trackAction(SoapUIActions.EXIT_WITHOUT_SAVE);
         }
 
         Analytics.trackSessionStop();
+        Analytics.trackAction(AnalyticsManager.Category.MIXPANEL_PROFILE, null, UniqueUserIdentifier.getInstance().prepareUserProfile());
 
         shutdown();
 
@@ -1145,19 +1233,27 @@ public class SoapUI {
         public void actionPerformed(ActionEvent e) {
             saveOnExit = true;
             WindowEvent windowEvent = new WindowEvent(frame, WindowEvent.WINDOW_CLOSING);
+            Analytics.trackAction(SoapUIActions.EXIT);
             frame.dispatchEvent(windowEvent);
         }
     }
 
     private class ApplyProxyButtonAction extends AbstractAction {
+
+        public ApplyProxyButtonAction() {
+            putValue(Action.NAME, "Proxy");
+        }
+
         public void actionPerformed(ActionEvent e) {
             if (ProxyUtils.isProxyEnabled()) {
                 SoapUI.getSettings().setBoolean(ProxySettings.ENABLE_PROXY, false);
+                Analytics.trackAction(TURN_OFF_PROXY_FROM_TOOLBAR);
             } else {
                 if (!ProxyUtils.isAutoProxy() && emptyManualSettings()) {
                     SoapUI.getSettings().setBoolean(ProxySettings.AUTO_PROXY, true);
                 }
                 SoapUI.getSettings().setBoolean(ProxySettings.ENABLE_PROXY, true);
+                Analytics.trackAction(TURN_ON_PROXY_FROM_TOOLBAR);
             }
 
             updateProxyFromSettings();
@@ -1173,6 +1269,8 @@ public class SoapUI {
         if (applyProxyButton == null) {
             return;
         }
+        applyProxyButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+        applyProxyButton.setHorizontalTextPosition(SwingConstants.CENTER);
         if (ProxyUtils.isProxyEnabled()) {
             applyProxyButton.setIcon(UISupport.createImageIcon(PROXY_ENABLED_ICON));
             if (ProxyUtils.isAutoProxy()) {
@@ -1186,6 +1284,8 @@ public class SoapUI {
             applyProxyButton.getAction().putValue(Action.SHORT_DESCRIPTION, "Proxy Setting: None");
         }
         applyProxyButton.setSelected(ProxyUtils.isProxyEnabled());
+        UIManager.put("ToggleButton.select", Color.WHITE);
+        SwingUtilities.updateComponentTreeUI(applyProxyButton);
     }
 
     private static class ShowStarterPageAction extends AbstractAction {
@@ -1201,28 +1301,28 @@ public class SoapUI {
 
     private class ToolbarForumSearchAction extends AbstractAction {
         public ToolbarForumSearchAction() {
-            putValue(Action.SHORT_DESCRIPTION, "Searches the SoapUI Support Forum");
+            putValue(Action.SHORT_DESCRIPTION, "Searches the Smartbear Community Forum");
             putValue(Action.SMALL_ICON, UISupport.createImageIcon("/find.png"));
         }
 
         public void actionPerformed(ActionEvent e) {
-            doForumSearch(searchField.getText());
+            doCommunitySearch(searchField.getText());
         }
     }
 
     private class SearchForumAction extends AbstractAction {
         public SearchForumAction() {
             super("Search Forum");
-            putValue(Action.SHORT_DESCRIPTION, "Searches the SoapUI Support Forum");
+            putValue(Action.SHORT_DESCRIPTION, "Searches the Smartbear Community Forum");
         }
 
         public void actionPerformed(ActionEvent e) {
-            String text = UISupport.prompt("Search Text", "Search Online Forum", "");
+            String text = UISupport.prompt("Search Text", "Search Community Forum", "");
             if (text == null) {
                 return;
             }
 
-            doForumSearch(text);
+            doCommunitySearch(text);
         }
     }
 
@@ -1237,11 +1337,11 @@ public class SoapUI {
         }
 
         UISupport.showDesktopPanel(starterPageDesktopPanel);
-        starterPageDesktopPanel.navigate(STARTER_PAGE_URL, STARTER_PAGE_ERROR_URL, true);
+        starterPageDesktopPanel.navigate(HelpUrls.STARTER_PAGE_URL, STARTER_PAGE_ERROR_URL, true);
     }
 
     private static class AboutAction extends AbstractAction {
-        private static final String COPYRIGHT = "2004-2014 smartbear.com";
+        private static final String COPYRIGHT = "2004-" + Calendar.getInstance().get(Calendar.YEAR) + " smartbear.com";
         private static final String SOAPUI_WEBSITE = "http://www.soapui.org";
         private static final String SMARTBEAR_WEBSITE = "http://www.smartbear.com";
 
@@ -1304,6 +1404,7 @@ public class SoapUI {
         public void actionPerformed(ActionEvent e) {
             try {
                 soapUICore.saveSettings();
+                Analytics.trackAction(SAVE_PREFERENCES);
             } catch (Exception e1) {
                 SoapUI.logError(e1, "There was an error when attempting to save your preferences");
                 UISupport.showErrorMessage(e1);
@@ -1369,51 +1470,73 @@ public class SoapUI {
         SoapUI.isStandalone = standalone;
     }
 
-    static class NewWsdlProjectActionDelegate extends AbstractAction {
-        public NewWsdlProjectActionDelegate() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/project.gif"));
-            putValue(Action.SHORT_DESCRIPTION, "Creates a new SOAP project");
+    static class NewProjectActionDelegate extends AbstractAction {
+        String actionId;
+        private SoapUIActions analyticAction;
+
+        public NewProjectActionDelegate(String icon, String name, String actionId) {
+            this(icon, name, actionId, null);
+        }
+
+        public NewProjectActionDelegate(String icon, String name, String actionId, SoapUIActions analyticAction) {
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon(icon));
+            if (name.equals("Empty")) {
+                putValue(Action.SHORT_DESCRIPTION, "Creates an empty project");
+            } else {
+                putValue(Action.SHORT_DESCRIPTION, "Creates a new " + name + " project");
+            }
+            putValue(Action.NAME, name);
+            this.actionId = actionId;
+            this.analyticAction = analyticAction;
         }
 
         public void setShortDescription(String description) {
             putValue(Action.SHORT_DESCRIPTION, description);
         }
 
+        public void setName(String name) {
+            putValue(Action.NAME, name);
+        }
+
         public void actionPerformed(ActionEvent e) {
-            SoapUI.getActionRegistry().getAction(NewWsdlProjectAction.SOAPUI_ACTION_ID).perform(workspace, null);
+            SoapUI.getActionRegistry().getAction(actionId).perform(workspace, analyticAction);
         }
     }
 
     private static class ImportWsdlProjectActionDelegate extends AbstractAction {
         public ImportWsdlProjectActionDelegate() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/import_project.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/import_toolbar_icon.png"));
             putValue(Action.SHORT_DESCRIPTION, "Imports an existing SoapUI Project into the current workspace");
+            putValue(Action.NAME, "Import");
         }
 
         public void actionPerformed(ActionEvent e) {
-            SoapUI.getActionRegistry().getAction(ImportWsdlProjectAction.SOAPUI_ACTION_ID).perform(workspace, null);
+            SoapUI.getActionRegistry().getAction(ImportWsdlProjectAction.SOAPUI_ACTION_ID).perform(workspace, IMPORT_PROJECT_FROM_TOOLBAR);
         }
     }
 
     private static class SaveAllActionDelegate extends AbstractAction {
         public SaveAllActionDelegate() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/disk_multiple.png"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/Save-all.png"));
             putValue(Action.SHORT_DESCRIPTION, "Saves all projects in the current workspace");
+            putValue(Action.NAME, "Save All");
         }
 
         public void actionPerformed(ActionEvent e) {
-            SoapUI.getActionRegistry().getAction(SaveAllProjectsAction.SOAPUI_ACTION_ID).perform(workspace, null);
+            SoapUI.getActionRegistry().getAction(SaveAllProjectsAction.SOAPUI_ACTION_ID).perform(workspace, SAVE_ALL_PROJECTS_FROM_TOOLBAR);
         }
     }
 
     private class PreferencesActionDelegate extends AbstractAction {
         public PreferencesActionDelegate() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/options.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/preferences_toolbar_icon.png"));
             putValue(Action.SHORT_DESCRIPTION, "Sets Global SoapUI Preferences");
+            putValue(Action.NAME, "Preferences");
         }
 
         public void actionPerformed(ActionEvent e) {
             SoapUIPreferencesAction.getInstance().actionPerformed(null);
+            Analytics.trackAction(OPEN_PREFERENCES_FROM_TOOLBAR);
         }
     }
 
@@ -1432,6 +1555,7 @@ public class SoapUI {
                         ".xml", "SoapUI Settings XML (*.xml)", null);
                 if (file != null) {
                     soapUICore.importSettings(file);
+                    Analytics.trackAction(IMPORT_PREFERENCES);
                 }
             } catch (Exception e1) {
                 UISupport.showErrorMessage(e1);
@@ -1658,5 +1782,4 @@ public class SoapUI {
             return false;
         }
     }
-
 }

@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.testcase;
 
@@ -101,6 +101,10 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragSource;
 import java.awt.event.ActionEvent;
 import java.util.Date;
+
+import static com.eviware.soapui.analytics.SoapUIActions.ADD_NEW_TEST_STEP_FROM_TEST_CASE_PANEL;
+import static com.eviware.soapui.analytics.SoapUIActions.CREATE_LOAD_TEST_FROM_TEST_CASE_PANEL;
+import static com.eviware.soapui.analytics.SoapUIActions.CREATE_SECURITY_TEST_FROM_TEST_CASE_PANEL;
 
 /**
  * WsdlTestCase desktop panel
@@ -314,11 +318,11 @@ public class WsdlTestCaseDesktopPanel extends KeySensitiveModelItemDesktopPanel<
 
         runButton = UISupport.createToolbarButton(new RunTestCaseAction());
         optionsButton = UISupport.createToolbarButton(SwingActionDelegate.createDelegate(
-                TestCaseOptionsAction.SOAPUI_ACTION_ID, getModelItem(), null, "/options.gif"));
+                TestCaseOptionsAction.SOAPUI_ACTION_ID, getModelItem(), null, "/preferences.png"));
         optionsButton.setText(null);
         cancelButton = UISupport.createToolbarButton(new CancelRunTestCaseAction(), false);
 
-        loopButton = new JToggleButton(UISupport.createImageIcon("/loop.gif"));
+        loopButton = new JToggleButton(UISupport.createImageIcon("/loop.png"));
         loopButton.setPreferredSize(UISupport.getPreferredButtonSize());
         loopButton.setToolTipText("Loop TestCase continuously");
 
@@ -331,11 +335,15 @@ public class WsdlTestCaseDesktopPanel extends KeySensitiveModelItemDesktopPanel<
         stateDependantComponents.add(setCredentialsButton);
         stateDependantComponents.add(setEndpointButton);
 
-        createLoadTestButton = UISupport.createToolbarButton(SwingActionDelegate.createDelegate(
-                AddNewLoadTestAction.SOAPUI_ACTION_ID, getModelItem(), null, "/loadTest.gif"));
+        SwingActionDelegate createLoadTestDelegate = SwingActionDelegate.createDelegate(
+                AddNewLoadTestAction.SOAPUI_ACTION_ID, getModelItem(), null, "/loadTest.png");
+        createLoadTestDelegate.getMapping().setParam(CREATE_LOAD_TEST_FROM_TEST_CASE_PANEL);
+        createLoadTestButton = UISupport.createToolbarButton(createLoadTestDelegate);
 
-        createSecurityTestButton = UISupport.createToolbarButton(SwingActionDelegate.createDelegate(
-                AddNewSecurityTestAction.SOAPUI_ACTION_ID, getModelItem(), null, "/security_test.gif"));
+        SwingActionDelegate createSecurityTestDelegate = SwingActionDelegate.createDelegate(
+                AddNewSecurityTestAction.SOAPUI_ACTION_ID, getModelItem(), null, "/security_test.png");
+        createSecurityTestDelegate.getMapping().setParam(CREATE_SECURITY_TEST_FROM_TEST_CASE_PANEL);
+        createSecurityTestButton = UISupport.createToolbarButton(createSecurityTestDelegate);
 
         addToolbarActions(toolbar);
 
@@ -525,20 +533,20 @@ public class WsdlTestCaseDesktopPanel extends KeySensitiveModelItemDesktopPanel<
 
     public class RunTestCaseAction extends AbstractAction {
         public RunTestCaseAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_testcase.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.png"));
             putValue(Action.SHORT_DESCRIPTION, "Runs this testcase");
         }
 
         public void actionPerformed(ActionEvent e) {
             canceled = false;
             runTestCase();
-            Analytics.trackAction(SoapUIActions.RUN_TEST_CASE.getActionName());
+            Analytics.trackAction(SoapUIActions.RUN_TEST_STEP_FROM_TOOLBAR);
         }
     }
 
     public class CancelRunTestCaseAction extends AbstractAction {
         public CancelRunTestCaseAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/stop_testcase.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/stop.png"));
             putValue(Action.SHORT_DESCRIPTION, "Stops running this testcase");
         }
 
@@ -711,6 +719,7 @@ public class WsdlTestCaseDesktopPanel extends KeySensitiveModelItemDesktopPanel<
                     if (testStep != null) {
                         UISupport.selectAndShow(testStep);
                     }
+                    Analytics.trackAction(ADD_NEW_TEST_STEP_FROM_TEST_CASE_PANEL, "Type", testStep.getClass().getSimpleName());
                 }
             }
         }

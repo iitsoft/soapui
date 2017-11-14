@@ -1,21 +1,23 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
+
 package com.eviware.soapui.impl.rest.actions.mock;
 
 import com.eviware.soapui.SoapUI;
+import com.eviware.soapui.analytics.Analytics;
 import com.eviware.soapui.impl.rest.RestRequest;
 import com.eviware.soapui.impl.rest.mock.RestMockAction;
 import com.eviware.soapui.impl.rest.mock.RestMockResponse;
@@ -32,6 +34,8 @@ import com.eviware.soapui.support.types.StringToStringsMap;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.eviware.soapui.analytics.SoapUIActions.ADD_REST_REQUEST_TO_REST_MOCK_SERVICE;
 
 public class AddRestRequestToMockServiceAction extends AbstractSoapUIAction<RestRequest> {
 
@@ -79,6 +83,7 @@ public class AddRestRequestToMockServiceAction extends AbstractSoapUIAction<Rest
 
         addRequestToMockService(restRequest, mockService);
         restRequest.getOperation().getService().addEndpoint(mockService.getLocalEndpoint());
+        Analytics.trackAction(ADD_REST_REQUEST_TO_REST_MOCK_SERVICE);
     }
 
 

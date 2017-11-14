@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.teststeps.amf;
 
@@ -24,7 +24,13 @@ import com.eviware.soapui.impl.wsdl.teststeps.WsdlMessageAssertion;
 import com.eviware.soapui.impl.wsdl.teststeps.WsdlTestStepWithProperties;
 import com.eviware.soapui.impl.wsdl.teststeps.assertions.TestAssertionRegistry.AssertableType;
 import com.eviware.soapui.model.ModelItem;
-import com.eviware.soapui.model.iface.*;
+import com.eviware.soapui.model.iface.Attachment;
+import com.eviware.soapui.model.iface.Interface;
+import com.eviware.soapui.model.iface.MessagePart;
+import com.eviware.soapui.model.iface.Operation;
+import com.eviware.soapui.model.iface.Submit;
+import com.eviware.soapui.model.iface.SubmitContext;
+import com.eviware.soapui.model.iface.SubmitListener;
 import com.eviware.soapui.model.propertyexpansion.PropertyExpander;
 import com.eviware.soapui.model.settings.Settings;
 import com.eviware.soapui.model.support.AbstractModelItem;
@@ -41,8 +47,13 @@ import com.eviware.soapui.support.types.StringToObjectMap;
 import com.eviware.soapui.support.types.StringToStringMap;
 import com.eviware.soapui.support.types.StringToStringsMap;
 
-import javax.swing.*;
-import java.util.*;
+import javax.swing.ImageIcon;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AMFRequest extends AbstractModelItem implements Assertable, TestRequest, AnimatableItem {
     public static final String AMF_SCRIPT_HEADERS = "AMF_SCRIPT_HEADERS";
@@ -220,26 +231,26 @@ public class AMFRequest extends AbstractModelItem implements Assertable, TestReq
 
     public void initIcons() {
         if (validRequestIcon == null) {
-            validRequestIcon = UISupport.createImageIcon("/valid_amf_request.gif");
+            validRequestIcon = UISupport.createImageIcon("/valid_amf_request_step.png");
         }
 
         if (failedRequestIcon == null) {
-            failedRequestIcon = UISupport.createImageIcon("/invalid_amf_request.gif");
+            failedRequestIcon = UISupport.createImageIcon("/invalid_amf_request_step.png");
         }
 
         if (unknownRequestIcon == null) {
-            unknownRequestIcon = UISupport.createImageIcon("/unknown_amf_request.gif");
+            unknownRequestIcon = UISupport.createImageIcon("/amf_request_step.png");
         }
 
         if (disabledRequestIcon == null) {
-            disabledRequestIcon = UISupport.createImageIcon("/disabled_amf_request.gif");
+            disabledRequestIcon = UISupport.createImageIcon("/disabled_amf_request_step.png");
         }
 
-        setIconAnimator(new RequestIconAnimator<AMFRequest>(this, "/amf_request.gif", "/exec_amf_request.gif", 3));
+        setIconAnimator(new RequestIconAnimator<AMFRequest>(this, "/amf_request.png", "/amf_request.png", 3));
     }
 
     protected RequestIconAnimator<?> initIconAnimator() {
-        return new RequestIconAnimator<AMFRequest>(this, "/amf_request.gif", "/exec_amf_request.gif", 3);
+        return new RequestIconAnimator<AMFRequest>(this, "/amf_request.gif", "/exec_amf_request.png", 3);
     }
 
     public static class RequestIconAnimator<T extends AMFRequest> extends IconAnimator<T> implements

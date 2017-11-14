@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.ui;
 
@@ -28,19 +28,20 @@ import com.eviware.soapui.support.action.swing.ActionList;
 import com.eviware.soapui.support.action.swing.ActionListBuilder;
 import com.eviware.soapui.support.action.swing.ActionSupport;
 import com.eviware.soapui.support.components.JXToolBar;
+import com.eviware.soapui.support.swing.MenuBuilderHelper;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.event.PopupMenuListener;
-import javax.swing.event.PopupMenuEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
@@ -86,7 +87,6 @@ public class Navigator extends JPanel {
 
     private void buildUI() {
         treeModel = new SoapUITreeModel(workspace);
-
         mainTree = new NavigatorTree(treeModel);
         mainTree.setRootVisible(true);
         mainTree.setExpandsSelectedPaths(true);
@@ -98,8 +98,9 @@ public class Navigator extends JPanel {
         mainTree.setBorder(null);
         mainTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
         mainTree.addKeyListener(new TreeKeyListener());
-
-        add(new JScrollPane(mainTree), BorderLayout.CENTER);
+        JScrollPane sp = new JScrollPane(mainTree);
+        sp.setBorder(BorderFactory.createEmptyBorder());
+        add(sp, BorderLayout.CENTER);
         add(buildToolbar(), BorderLayout.NORTH);
         setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
     }
@@ -268,12 +269,13 @@ public class Navigator extends JPanel {
             Object obj = e.getPath().getLastPathComponent();
             if (obj instanceof SoapUITreeNode) {
                 SoapUITreeNode treeNode = (SoapUITreeNode) obj;
-
+                MenuBuilderHelper.buildTreeNodeMenu(treeNode);
                 if (!listeners.isEmpty()) {
                     TreePath newPath = e.getNewLeadSelectionPath();
                     NavigatorListener[] array = listeners.toArray(new NavigatorListener[listeners.size()]);
                     for (NavigatorListener listener : array) {
                         listener.nodeSelected(newPath == null ? null : treeNode);
+
                     }
                 }
             }
@@ -386,7 +388,7 @@ public class Navigator extends JPanel {
             }
         }
 
-        private void showToolTipLessPopupMenu(JPopupMenu pm, int x, int y){
+        private void showToolTipLessPopupMenu(JPopupMenu pm, int x, int y) {
             pm.addPopupMenuListener(new PopupMenuListener() {
 
                 @Override
@@ -404,7 +406,7 @@ public class Navigator extends JPanel {
                     ToolTipManager.sharedInstance().setEnabled(false);
                 }
             });
-            pm.show( mainTree, x, y );
+            pm.show(mainTree, x, y);
         }
 
         private void showPopup(MouseEvent e) {
@@ -462,7 +464,7 @@ public class Navigator extends JPanel {
 
     private class TogglePropertiesAction extends AbstractAction {
         public TogglePropertiesAction() {
-            putValue(SMALL_ICON, UISupport.createImageIcon("/toggle_properties.gif"));
+            putValue(SMALL_ICON, UISupport.createImageIcon("/properties_step.png"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -480,5 +482,4 @@ public class Navigator extends JPanel {
             }
         }
     }
-
 }

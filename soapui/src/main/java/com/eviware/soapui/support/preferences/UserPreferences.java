@@ -1,21 +1,24 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
+
 package com.eviware.soapui.support.preferences;
 
 import com.eviware.soapui.SoapUI;
+import com.eviware.soapui.analytics.UniqueUserIdentifier;
+import com.smartbear.analytics.api.UserIdentificationInformation;
 
 import java.awt.Frame;
 import java.awt.Rectangle;
@@ -37,6 +40,7 @@ public class UserPreferences {
     static final String WINDOW_HEIGHT = "SoapUIWindowHeight";
     static final String EXTENDED_STATE = "SoapUIExtendedState";
     static final String INSTALLATION_TYPE = "SoapUIInstallationType";
+    private static final Preferences unifiedPreferences = Preferences.userRoot().node(UserIdentificationInformation.UNIQUE_ID_SETTINGS_NODE_NAME);
 
     private Preferences preferences = Preferences.userRoot().node(ROOT_NODE_NAME);
 
@@ -100,6 +104,14 @@ public class UserPreferences {
             }
         }
         return true;
+    }
+
+    public void setAnalyticsUserId(String userId) {
+        unifiedPreferences.put(UserIdentificationInformation.UNIQUE_ANALYTICS_USER_ID, userId);
+    }
+
+    public String getAnalyticsUserId() {
+        return unifiedPreferences.get(UserIdentificationInformation.UNIQUE_ANALYTICS_USER_ID, "");
     }
 
     public static void main(String[] args) throws BackingStoreException {

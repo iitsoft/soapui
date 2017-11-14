@@ -1,23 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.teststeps;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import com.eviware.soapui.impl.support.http.HttpRequestInterface;
 import com.eviware.soapui.impl.wsdl.submit.AbstractMessageExchange;
@@ -26,6 +23,9 @@ import com.eviware.soapui.model.iface.Attachment;
 import com.eviware.soapui.model.iface.Operation;
 import com.eviware.soapui.support.types.StringToStringsMap;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HttpResponseMessageExchange extends AbstractMessageExchange<HttpRequestInterface<?>> {
     private HttpResponse response;
     private String requestContent;
@@ -33,7 +33,7 @@ public class HttpResponseMessageExchange extends AbstractMessageExchange<HttpReq
     public HttpResponseMessageExchange(HttpRequestInterface<?> request) {
         super(request);
 
-        response = request.getResponse();
+        response = (isDiscarded() == true) ? null : request.getResponse();
         if (response != null) {
             for (String key : response.getPropertyNames()) {
                 addProperty(key, response.getProperty(key));
@@ -123,7 +123,7 @@ public class HttpResponseMessageExchange extends AbstractMessageExchange<HttpReq
     }
 
     public boolean isDiscarded() {
-        return false;
+        return discardResponse;
     }
 
     public Operation getOperation() {

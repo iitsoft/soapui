@@ -1,22 +1,23 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.submit.transports.http;
 
 import com.eviware.soapui.SoapUI;
+import com.eviware.soapui.impl.rest.RestRequestInterface;
 import com.eviware.soapui.impl.support.AbstractHttpRequestInterface;
 import com.eviware.soapui.impl.support.HttpUtils;
 import com.eviware.soapui.impl.support.http.HttpRequestInterface;
@@ -24,7 +25,14 @@ import com.eviware.soapui.impl.wsdl.AbstractWsdlModelItem;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
 import com.eviware.soapui.impl.wsdl.submit.RequestFilter;
 import com.eviware.soapui.impl.wsdl.submit.transports.http.support.attachments.MimeMessageResponse;
-import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.*;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedDeleteMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedGetMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedHeadMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedOptionsMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedPatchMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedPostMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedPutMethod;
+import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.ExtendedTraceMethod;
 import com.eviware.soapui.impl.wsdl.support.PathUtils;
 import com.eviware.soapui.impl.wsdl.support.http.HeaderRequestInterceptor;
 import com.eviware.soapui.impl.wsdl.support.http.HttpClientSupport;
@@ -44,10 +52,12 @@ import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.impl.client.EntityEnclosingRequestWrapper;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import javax.annotation.CheckForNull;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -167,10 +177,7 @@ public class HttpClientRequestTransport implements BaseHttpRequestTransport {
         submitContext.setProperty(WSDL_REQUEST, httpRequest);
         submitContext.setProperty(RESPONSE_PROPERTIES, new StringToStringMap());
 
-
-        for (RequestFilter filter : filters) {
-            filter.filterRequest(submitContext, httpRequest);
-        }
+        filterRequest(submitContext, httpRequest);
 
         try {
             Settings settings = httpRequest.getSettings();
@@ -232,7 +239,7 @@ public class HttpClientRequestTransport implements BaseHttpRequestTransport {
                     EntityUtils.consume(httpResponse.getEntity());
                 }
 
-                httpMethod = followRedirects(httpClient, 0, httpMethod, httpResponse, httpContext);
+                httpMethod = followRedirects(httpClient, 0, httpMethod, httpResponse, httpContext, submitContext);
                 submitContext.setProperty(HTTP_METHOD, httpMethod);
             }
         } catch (Throwable t) {
@@ -305,10 +312,36 @@ public class HttpClientRequestTransport implements BaseHttpRequestTransport {
 
         return false;
     }
+    
+    private void filterRequest(SubmitContext submitContext, AbstractHttpRequestInterface<?> httpRequest) {
+		for(RequestFilter filter: filters) {
+			filter.filterRequest(submitContext, httpRequest);
+		}
+	}
+    
+    private boolean isPostMethod(EntityEnclosingRequestWrapper httpRequestWrapper, org.apache.http.HttpResponse httpResponse) {
+		int statusCode = httpResponse.getStatusLine().getStatusCode();
+		return (statusCode != HttpServletResponse.SC_SEE_OTHER && 
+				httpRequestWrapper != null &&
+				httpRequestWrapper.getMethod()
+				.equals(RestRequestInterface.HttpMethod.POST.toString()));
+	}
 
-    private ExtendedGetMethod followRedirects(HttpClient httpClient, int redirectCount, ExtendedHttpMethod httpMethod,
-                                              org.apache.http.HttpResponse httpResponse, HttpContext httpContext) throws Exception {
-        ExtendedGetMethod getMethod = new ExtendedGetMethod();
+    private ExtendedHttpMethod followRedirects(HttpClient httpClient, int redirectCount, ExtendedHttpMethod httpMethod,
+    										   org.apache.http.HttpResponse httpResponse, HttpContext httpContext, SubmitContext submitContext) throws Exception {
+    	EntityEnclosingRequestWrapper httpRequestWrapper = (EntityEnclosingRequestWrapper)httpContext
+			.getAttribute(org.apache.http.protocol.ExecutionContext.HTTP_REQUEST);
+
+		ExtendedHttpMethod getMethod;
+		if(isPostMethod(httpRequestWrapper, httpResponse))
+			getMethod = new ExtendedPostMethod();
+		else {
+			getMethod = new ExtendedGetMethod();
+		}
+
+		submitContext.setProperty("httpMethod", getMethod);
+		AbstractHttpRequestInterface<?> httpRequest = (AbstractHttpRequestInterface<?>)submitContext.getProperty(WSDL_REQUEST);
+		filterRequest(submitContext, httpRequest);
 
         getMethod
                 .getMetrics()
@@ -323,6 +356,10 @@ public class HttpClientRequestTransport implements BaseHttpRequestTransport {
                 uri.getEscapedPath(), uri.getEscapedQuery(), uri.getEscapedFragment());
         getMethod.setURI(newUri);
 
+        // Thijs Brentjens: if the location contains a different Host, due to the redirect, then use that instead of the already existing Host-header. So just set the Host header to the new host of the URI
+        
+        getMethod.setHeader("Host",uri.getHost());
+
         org.apache.http.HttpResponse response = submitRequest(getMethod, httpContext);
 
         if (isRedirectResponse(response.getStatusLine().getStatusCode())) {
@@ -331,7 +368,8 @@ public class HttpClientRequestTransport implements BaseHttpRequestTransport {
             }
 
             try {
-                getMethod = followRedirects(httpClient, redirectCount + 1, getMethod, response, httpContext);
+                getMethod = followRedirects(httpClient, redirectCount + 1, getMethod, response, httpContext, 
+								submitContext);
             } finally {
                 //TODO: check if this is necessary!
                 //getMethod.releaseConnection();

@@ -1,27 +1,29 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.support;
 
+import com.eviware.soapui.impl.wsdl.support.HelpUrls;
 import com.eviware.soapui.support.editor.inspectors.attachments.ContentTypeHandler;
 import com.eviware.soapui.support.types.StringToStringMap;
 import junit.framework.ComparisonFailure;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import java.awt.event.ActionEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -177,6 +179,54 @@ public class Tools {
     // preallocate so it does not consume memory after out-of-memory errors
     private static final byte[] copyBuffer = new byte[8192];
     public static final long READ_ALL = 0;
+
+
+
+    public static String modifyUrl(final String url, Integer mods) {
+
+        String helpUrl = url;
+
+        // Integer, since switch strings won't work yet.
+
+        int modifier = 0; // String modifier = "prod";
+
+        if (helpUrl == null) {
+            modifier = 1; // "missing";
+        } else if (url.substring(0, 4).equals("http")) {
+            modifier = 2; // "external";
+        } else if (((mods & ActionEvent.SHIFT_MASK) != 0)
+                && ((mods & ActionEvent.CTRL_MASK) != 0)) {
+            modifier = 3; // "dev";
+        }else if (((mods & ActionEvent.SHIFT_MASK) != 0)
+                && ((mods & ActionEvent.ALT_MASK) != 0)) {
+            modifier = 4; // "next";
+        } else {
+            modifier = 0; // String modifier = "prod";
+        }
+
+        switch (modifier) {
+            case 1: // "missing":
+                UISupport.showErrorMessage("Missing help URL");
+                helpUrl = HelpUrls.MISSING_URL + url;
+                break;
+            case 2: // "external":
+                helpUrl = url;
+                break;
+            case 3: // "dev":
+                helpUrl = HelpUrls.BASE_URL_DEV + url;
+                break;
+            case 4: // "next":
+                helpUrl = HelpUrls.BASE_URL_NEXT + url;
+                break;
+            default:
+                helpUrl = HelpUrls.BASE_URL_PROD + url;
+                break;
+        }
+
+        return helpUrl;
+    }
+
+
 
     public static void openURL(String url) {
         String osName = System.getProperty("os.name");

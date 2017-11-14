@@ -1,34 +1,24 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.tools;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.cli.CommandLine;
-
 import com.eviware.soapui.SoapUI;
+import com.eviware.soapui.analytics.Analytics;
+import com.eviware.soapui.analytics.AnalyticsHelper;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
 import com.eviware.soapui.impl.wsdl.WsdlTestSuite;
 import com.eviware.soapui.impl.wsdl.testcase.WsdlProjectRunner;
@@ -57,7 +47,6 @@ import com.eviware.soapui.model.testsuite.TestStep;
 import com.eviware.soapui.model.testsuite.TestStepResult;
 import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus;
 import com.eviware.soapui.model.testsuite.TestSuite;
-import com.eviware.soapui.model.testsuite.TestSuite.TestSuiteRunType;
 import com.eviware.soapui.model.testsuite.TestSuiteRunner;
 import com.eviware.soapui.report.JUnitReportCollector;
 import com.eviware.soapui.report.JUnitSecurityReportCollector;
@@ -65,6 +54,20 @@ import com.eviware.soapui.report.TestCaseRunLogReport;
 import com.eviware.soapui.support.StringUtils;
 import com.eviware.soapui.support.Tools;
 import com.eviware.soapui.support.types.StringToObjectMap;
+import org.apache.commons.cli.CommandLine;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.eviware.soapui.analytics.SoapUIActions.LAUNCH_FUNCTIONAL_TEST_RUNNER;
+import static com.eviware.soapui.impl.wsdl.actions.iface.tools.support.ProcessToolRunner.DO_NOT_SEND_ANALYTICS_PARAMETER;
 
 /**
  * Standalone test-runner used from maven-plugin, can also be used from
@@ -98,6 +101,7 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
     private boolean exportAll;
     private boolean ignoreErrors;
     private boolean junitReport;
+    private boolean junitReportWithProperties;
     private int exportCount;
     private int maxErrors = 5;
     private JUnitReportCollector reportCollector;
@@ -174,9 +178,8 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
             setSystemProperties(cmd.getOptionValues("D"));
         }
 
-        if( cmd.hasOption( "H" ) )
-        {
-            setCustomHeaders( cmd.getOptionValues( "H" ) );
+        if (cmd.hasOption("H")) {
+            setCustomHeaders(cmd.getOptionValues("H"));
         }
 
         if (cmd.hasOption("G")) {
@@ -199,6 +202,7 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
         }
 
         setJUnitReport(cmd.hasOption("j"));
+        setJUnitReportWithProperties(cmd.hasOption("J"));
 
         if (cmd.hasOption("m")) {
             setMaxErrors(Integer.parseInt(cmd.getOptionValue("m")));
@@ -237,34 +241,34 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
     }
 
     @Override
-    protected SoapUIOptions initCommandLineOptions()
-    {
-        SoapUIOptions options = new SoapUIOptions( "testrunner" );
-        options.addOption( "e", true, "Sets the endpoint" );
-        options.addOption( "s", true, "Sets the testsuite" );
-        options.addOption( "c", true, "Sets the testcase" );
-        options.addOption( "u", true, "Sets the username" );
-        options.addOption( "p", true, "Sets the password" );
-        options.addOption( "w", true, "Sets the WSS password type, either 'Text' or 'Digest'" );
-        options.addOption( "i", false, "Enables Swing UI for scripts" );
-        options.addOption( "d", true, "Sets the domain" );
-        options.addOption( "h", true, "Sets the host" );
-        options.addOption( "r", false, "Prints a small summary report" );
-        options.addOption( "M", false, "Creates a Test Run Log Report in XML format" );
-        options.addOption( "f", true, "Sets the output folder to export results to" );
-        options.addOption( "j", false, "Sets the output to include JUnit XML reports" );
-        options.addOption( "m", false, "Sets the maximum number of TestStep errors to save for each testcase" );
-        options.addOption( "a", false, "Turns on exporting of all results" );
-        options.addOption( "A", false, "Turns on exporting of all results using folders instead of long filenames" );
-        options.addOption( "t", true, "Sets the soapui-settings.xml file to use" );
-        options.addOption( "x", true, "Sets project password for decryption if project is encrypted" );
-        options.addOption( "v", true, "Sets password for soapui-settings.xml file" );
-        options.addOption( "D", true, "Sets system property with name=value" );
-        options.addOption( "G", true, "Sets global property with name=value" );
-        options.addOption( "P", true, "Sets or overrides project property with name=value" );
-        options.addOption( "I", false, "Do not stop if error occurs, ignore them" );
-        options.addOption( "S", false , "Saves the project after running the tests" );
-        options.addOption( "H", true , "Adds a custom HTTP Header to all outgoing requests (name=value), can be specified multiple times" );
+    protected SoapUIOptions initCommandLineOptions() {
+        SoapUIOptions options = new SoapUIOptions("testrunner");
+        options.addOption("e", true, "Sets the endpoint");
+        options.addOption("s", true, "Sets the testsuite");
+        options.addOption("c", true, "Sets the testcase");
+        options.addOption("u", true, "Sets the username");
+        options.addOption("p", true, "Sets the password");
+        options.addOption("w", true, "Sets the WSS password type, either 'Text' or 'Digest'");
+        options.addOption("i", false, "Enables Swing UI for scripts");
+        options.addOption("d", true, "Sets the domain");
+        options.addOption("h", true, "Sets the host");
+        options.addOption("r", false, "Prints a small summary report");
+        options.addOption("M", false, "Creates a Test Run Log Report in XML format");
+        options.addOption("f", true, "Sets the output folder to export results to");
+        options.addOption("j", false, "Sets the output to include JUnit XML reports");
+        options.addOption("J", false, "Sets the output to include JUnit XML reports adding test properties to the report");
+        options.addOption("m", false, "Sets the maximum number of TestStep errors to save for each testcase");
+        options.addOption("a", false, "Turns on exporting of all results");
+        options.addOption("A", false, "Turns on exporting of all results using folders instead of long filenames");
+        options.addOption("t", true, "Sets the soapui-settings.xml file to use");
+        options.addOption("x", true, "Sets project password for decryption if project is encrypted");
+        options.addOption("v", true, "Sets password for soapui-settings.xml file");
+        options.addOption("D", true, "Sets system property with name=value");
+        options.addOption("G", true, "Sets global property with name=value");
+        options.addOption("P", true, "Sets or overrides project property with name=value");
+        options.addOption("I", false, "Do not stop if error occurs, ignore them");
+        options.addOption("S", false, "Saves the project after running the tests");
+        options.addOption("H", true, "Adds a custom HTTP Header to all outgoing requests (name=value), can be specified multiple times");
 
         return options;
     }
@@ -281,6 +285,13 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
         this.junitReport = junitReport;
         if (junitReport) {
             reportCollector = createJUnitSecurityReportCollector();
+        }
+    }
+
+    public void setJUnitReportWithProperties(boolean shouldIncludePropertiesInTheReport) {
+        this.junitReportWithProperties = shouldIncludePropertiesInTheReport;
+        if (this.junitReport && junitReportWithProperties) {
+            reportCollector.setIncludeTestPropertiesInReport(junitReportWithProperties);
         }
     }
 
@@ -320,6 +331,12 @@ public class SoapUITestCaseRunner extends AbstractSoapUITestRunner {
 
     @Override
     public boolean runRunner() throws Exception {
+        AnalyticsHelper.initializeAnalytics();
+        Analytics.trackSessionStart();
+        if(System.getenv(DO_NOT_SEND_ANALYTICS_PARAMETER) == null) {
+            Analytics.trackAction(LAUNCH_FUNCTIONAL_TEST_RUNNER);
+        }
+
         initGroovyLog();
 
         assertions.clear();

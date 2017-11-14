@@ -1,18 +1,19 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
+
 package com.eviware.soapui.impl.actions;
 
 import com.eviware.soapui.config.RestParametersConfig;
@@ -30,13 +31,38 @@ import com.eviware.soapui.impl.rest.support.RestUtils;
 import com.eviware.soapui.impl.rest.support.XmlBeansRestParamsTestPropertyHolder;
 import com.eviware.soapui.impl.support.AbstractInterface;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
+import com.eviware.soapui.support.ModelItemNamer;
 import com.eviware.soapui.support.StringUtils;
 import com.eviware.soapui.support.UISupport;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.net.MalformedURLException;
 
+import static com.eviware.soapui.impl.actions.RestServiceBuilder.ModelCreationStrategy.REUSE_MODEL;
+
 public class RestServiceBuilder {
+
+    public enum ModelCreationStrategy {
+        CREATE_NEW_MODEL, REUSE_MODEL
+    }
+
+    public static class RequestInfo {
+        private final String uri;
+        private final RestRequestInterface.HttpMethod requestMethod;
+
+        public RequestInfo(String uri, RestRequestInterface.HttpMethod requestMethod) {
+            this.uri = uri;
+            this.requestMethod = requestMethod;
+        }
+
+        public String getUri() {
+            return uri;
+        }
+
+        public RestRequestInterface.HttpMethod getRequestMethod() {
+            return requestMethod;
+        }
+    }
 
     public void createRestService(WsdlProject project, String URI) throws MalformedURLException {
         if (StringUtils.isNullOrEmpty(URI)) {
@@ -49,6 +75,14 @@ public class RestServiceBuilder {
         UISupport.select(restRequest);
         UISupport.showDesktopPanel(restRequest);
 
+    }
+
+    public RestRequest createRestServiceHeadlessFromUri(WsdlProject project, RequestInfo requestInfo, ModelCreationStrategy methodReuseStrategy) throws MalformedURLException {
+        RestResource restResource = createResource(REUSE_MODEL, project, requestInfo.getUri());
+        RestMethod restMethod = addNewMethod(methodReuseStrategy, restResource, requestInfo.getRequestMethod());
+        RestRequest restRequest = addNewRequest(restMethod);
+        copyParametersWithDefaultsOnResource(extractParams(requestInfo.getUri()), restMethod.getParams(), restRequest.getParams());
+        return restRequest;
     }
 
     protected RestParamsPropertyHolder extractParams(String URI) {
@@ -120,7 +154,8 @@ public class RestServiceBuilder {
                 }
             }
         }
-        RestMethod restMethod = restResource.addNewMethod(restResource.getName());
+        String methodName = ModelItemNamer.createName(restResource.getName(), restResource.getRestMethodList());
+        RestMethod restMethod = restResource.addNewMethod(methodName);
         restMethod.setMethod(requestMethod);
         return restMethod;
     }
@@ -129,7 +164,4 @@ public class RestServiceBuilder {
         return restMethod.addNewRequest("Request " + (restMethod.getRequestCount() + 1));
     }
 
-    protected static enum ModelCreationStrategy {
-        CREATE_NEW_MODEL, REUSE_MODEL
-    }
 }

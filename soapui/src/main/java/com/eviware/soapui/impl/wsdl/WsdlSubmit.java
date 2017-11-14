@@ -1,25 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl;
-
-import java.util.List;
-import java.util.concurrent.Future;
-
-import org.apache.log4j.Logger;
 
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.impl.support.AbstractHttpRequestInterface;
@@ -29,6 +24,10 @@ import com.eviware.soapui.model.iface.Response;
 import com.eviware.soapui.model.iface.Submit;
 import com.eviware.soapui.model.iface.SubmitContext;
 import com.eviware.soapui.model.iface.SubmitListener;
+import org.apache.log4j.Logger;
+
+import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Submit implementation for submitting a WsdlRequest
@@ -86,17 +85,21 @@ public final class WsdlSubmit<T extends AbstractHttpRequestInterface<?>> impleme
             return;
         }
 
-        logger.info("Canceling request..");
+        logger.info("Canceling request...");
         if (status == Status.RUNNING) {
             transport.abortRequest(submitContext);
         }
 
         status = Status.CANCELED;
 
-        for (int i = 0; i < listeners.length; i++) {
+        notifyListenersAfterSubmit();
+    }
+
+    private void notifyListenersAfterSubmit() {
+        for (SubmitListener listener : listeners) {
             try {
-                listeners[i].afterSubmit(this, submitContext);
-            } catch (Throwable e) {
+                listener.afterSubmit(this, submitContext);
+            } catch (Throwable e) { //NOSONAR
                 SoapUI.logError(e);
             }
         }
@@ -107,12 +110,9 @@ public final class WsdlSubmit<T extends AbstractHttpRequestInterface<?>> impleme
             submitContext.setProperty(RequestTransport.REQUEST_TRANSPORT, transport);
             submitContext.setProperty(RequestTransport.WSDL_REQUEST, request);
 
-            for (int i = 0; i < listeners.length; i++) {
-                if (!listeners[i].beforeSubmit(this, submitContext)) {
-                    status = Status.CANCELED;
-                    System.err.println("listener cancelled submit..");
-                    return;
-                }
+            boolean shouldAbort = notifyListenersBeforeSubmit();
+            if (shouldAbort) {
+                return;
             }
 
             status = Status.RUNNING;
@@ -122,9 +122,13 @@ public final class WsdlSubmit<T extends AbstractHttpRequestInterface<?>> impleme
                 status = Status.FINISHED;
             }
 
-            if (response.getTimeTaken() == 0) {
-                logger.warn("Request took 0 in thread " + Thread.currentThread().getId() + ", response length = "
-                        + response.getContentLength());
+            if (response != null) {
+                if (response.getTimeTaken() == 0) {
+                    logger.warn("Request took 0 in thread " + Thread.currentThread().getId() + ", response length = "
+                            + response.getContentLength());
+                }
+            } else {
+                logger.warn("Request does not have a response");
             }
         } catch (Exception e1) {
             error = e1;
@@ -139,15 +143,24 @@ public final class WsdlSubmit<T extends AbstractHttpRequestInterface<?>> impleme
             }
         } finally {
             if (status != Status.CANCELED) {
-                for (int i = 0; i < listeners.length; i++) {
-                    try {
-                        listeners[i].afterSubmit(this, submitContext);
-                    } catch (Throwable e) {
-                        SoapUI.logError(e);
-                    }
-                }
+                notifyListenersAfterSubmit();
             }
         }
+    }
+
+    private boolean notifyListenersBeforeSubmit() {
+        for (SubmitListener listener : listeners) {
+            try {
+                if (!listener.beforeSubmit(this, submitContext)) {
+                    status = Status.CANCELED;
+                    System.err.println("listener cancelled submit...");
+                    return true;
+                }
+            } catch (Throwable e) {
+                SoapUI.logError(e, "Error in SubmitListener");
+            }
+        }
+        return false;
     }
 
     public T getRequest() {

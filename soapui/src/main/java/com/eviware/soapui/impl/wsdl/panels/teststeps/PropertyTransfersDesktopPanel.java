@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.teststeps;
 
@@ -972,12 +972,12 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
     private final class AddAction extends AbstractAction {
         public AddAction() {
             putValue(Action.SHORT_DESCRIPTION, "Adds a new Property Transfer");
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/add_property.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/add.png"));
         }
 
         public void actionPerformed(ActionEvent e) {
 
-            Analytics.trackAction(SoapUIActions.ADD_PROPERTY_TRASNFER_IN_PROPERTY_TRANSFER_TEST_STEP.getActionName());
+            Analytics.trackAction(SoapUIActions.ADD_PROPERTY_TRANSFER_IN_PROPERTY_TRANSFER_TEST_STEP);
 
             String name = UISupport.prompt("Specify name for value transfer", "Add Transfer", "");
             if (name == null || name.trim().length() == 0) {
@@ -992,7 +992,7 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
     private final class CopyAction extends AbstractAction {
         public CopyAction() {
             putValue(Action.SHORT_DESCRIPTION, "Copies the selected Property Transfer");
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/clone_request.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/clone.png"));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -1023,7 +1023,6 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
             transfer.setTransferToAll(originalTransfer.getTransferToAll());
             transfer.setUseXQuery(originalTransfer.getUseXQuery());
 
-            listModel.addElement(name);
             transferList.setSelectedIndex(listModel.getSize() - 1);
         }
 
@@ -1032,7 +1031,7 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
 
     private final class DeleteAction extends AbstractAction {
         public DeleteAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/remove_property.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/delete.png"));
             putValue(Action.SHORT_DESCRIPTION, "Deletes the selected Property Transfer");
         }
 
@@ -1052,7 +1051,7 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
 
     private final class ClearLogAction extends AbstractAction {
         public ClearLogAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/clear_properties.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/clear.png"));
             putValue(Action.SHORT_DESCRIPTION, "Clears the property-transfer log");
         }
 
@@ -1134,7 +1133,7 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
 
     private final class RunAllAction extends AbstractAction {
         public RunAllAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_all.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_all.png"));
             putValue(Action.SHORT_DESCRIPTION, "Runs all Property Transfers");
         }
 
@@ -1158,7 +1157,7 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
 
     private final class RunAction extends AbstractAction {
         public RunAction() {
-            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.gif"));
+            putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.png"));
             putValue(Action.SHORT_DESCRIPTION, "Runs selected PropertyTransfer");
         }
 
@@ -1168,7 +1167,7 @@ public class PropertyTransfersDesktopPanel extends ModelItemDesktopPanel<Propert
                 return;
             }
 
-            Analytics.trackAction(SoapUIActions.RUN_TEST_STEP.getActionName(), "RequestType", "PropertyTransfer");
+            Analytics.trackAction(SoapUIActions.RUN_TEST_STEP_FROM_PANEL, "RequestType", "PropertyTransfer");
 
             MockTestRunner mockRunner = new MockTestRunner(transferStep.getTestCase());
             MockTestRunContext context = new MockTestRunContext(mockRunner, transferStep);

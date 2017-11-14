@@ -29,6 +29,7 @@
     <tns:action id="TcpMonAction" actionClass="com.eviware.soapui.impl.wsdl.actions.iface.tools.tcpmon.TcpMonAction"/>
 
     <!-- Workspace Actions -->
+    <tns:action id="NewEmptyProjectAction" actionClass="com.eviware.soapui.impl.actions.NewEmptyProjectAction"/>
     <tns:action id="NewWsdlProjectAction" actionClass="com.eviware.soapui.impl.actions.NewWsdlProjectAction"/>
     <tns:action id="NewRestProjectAction" actionClass="com.eviware.soapui.impl.actions.NewRestProjectAction"/>
     <tns:action id="NewWadlProjectAction" actionClass="com.eviware.soapui.impl.actions.NewWadlProjectAction"/>
@@ -360,6 +361,7 @@
     <!-- Workspace Action Group -->
     <tns:actionGroup name="Workspace Actions" id="WorkspaceImplActions"
                      class="com.eviware.soapui.impl.actions.WorkspaceImplSoapUIActionGroup">
+        <tns:actionMapping actionId="NewEmptyProjectAction"/>
         <tns:actionMapping actionId="NewWsdlProjectAction" keyStroke="menu N"/>
         <tns:actionMapping actionId="NewRestProjectAction" keyStroke="menu alt N"/>
         <tns:actionMapping actionId="SeperatorAction"/>
@@ -486,7 +488,7 @@
         <tns:actionMapping actionId="CreateWsdlDocumentationAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="UpdateInterfaceAction" keyStroke="F5" iconPath="/updateDefinition.gif"/>
-        <tns:actionMapping actionId="ExportDefinitionAction" keyStroke="menu P" iconPath="/exportDefinition.gif"/>
+        <tns:actionMapping actionId="ExportDefinitionAction" keyStroke="menu P" iconPath="/export.png"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="CloneInterfaceAction" keyStroke="F9"/>
         <tns:actionMapping actionId="RemoveInterfaceAction" keyStroke="DELETE"/>
@@ -504,7 +506,7 @@
         <tns:actionMapping actionId="CreateWadlDocumentationAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="Wadl2JavaAction"/>
-        <tns:actionMapping actionId="ExportWadlAction" keyStroke="menu P" iconPath="/exportDefinition.gif"/>
+        <tns:actionMapping actionId="ExportWadlAction" keyStroke="menu P" iconPath="/export.png"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="NewRestResourceAction"/>
         <tns:actionMapping actionId="DeleteRestServiceAction" keyStroke="DELETE"/>
@@ -533,7 +535,7 @@
         <tns:actionMapping actionId="NewRestMethodAction"/>
         <tns:actionMapping actionId="NewChildResourceAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
-        <tns:actionMapping actionId="CloneRestResourceAction" keyStroke="F9" iconPath="/clone_request.gif"/>
+        <tns:actionMapping actionId="CloneRestResourceAction" keyStroke="F9" iconPath="/clone.png"/>
         <tns:actionMapping actionId="RenameRestResourceAction" keyStroke="F2"/>
         <tns:actionMapping actionId="DeleteRestResourceAction" keyStroke="DELETE"/>
 
@@ -547,7 +549,7 @@
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="NewRestRequestAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
-        <tns:actionMapping actionId="CloneRestMethodAction" keyStroke="F9" iconPath="/clone_request.gif"/>
+        <tns:actionMapping actionId="CloneRestMethodAction" keyStroke="F9" iconPath="/clone.png"/>
         <tns:actionMapping actionId="RenameRestMethodAction" keyStroke="F2"/>
         <tns:actionMapping actionId="DeleteRestMethodAction" keyStroke="DELETE"/>
 
@@ -559,11 +561,11 @@
         <tns:actionMapping actionId="ShowDesktopPanelAction" name="Show Request Editor"
                            description="Shows the Request Editor for this Request" keyStroke="ENTER"/>
         <tns:actionMapping actionId="SeperatorAction"/>
-        <tns:actionMapping actionId="AddRequestToTestCaseAction" keyStroke="menu alt A" iconPath="/addToTestCase.gif"/>
+        <tns:actionMapping actionId="AddRequestToTestCaseAction" keyStroke="menu alt A" iconPath="/add_to_test_case.png"/>
         <tns:actionMapping actionId="AddRequestToMockServiceAction" iconPath="/addToMockService.gif"/>
         <tns:actionMapping actionId="AddRequestAsMockResponseStepAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
-        <tns:actionMapping actionId="CloneRequestAction" keyStroke="F9" iconPath="/clone_request.gif"/>
+        <tns:actionMapping actionId="CloneRequestAction" keyStroke="F9" iconPath="/clone.png"/>
         <tns:actionMapping actionId="RenameRequestAction" keyStroke="F2"/>
         <tns:actionMapping actionId="DeleteRequestAction" keyStroke="DELETE"/>
 
@@ -576,11 +578,11 @@
                            description="Shows the Request Editor for this Request" keyStroke="ENTER"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="AddRestRequestToTestCaseAction" keyStroke="menu alt A"
-                           iconPath="/addToTestCase.gif"/>
+                           iconPath="/add_to_test_case.png"/>
         <tns:actionMapping actionId="AddRestRequestToMockServiceAction" keyStroke="menu alt M"
                            iconPath="/rest_request.gif"/>
         <tns:actionMapping actionId="SeperatorAction"/>
-        <tns:actionMapping actionId="CloneRestRequestAction" keyStroke="F9" iconPath="/clone_request.gif"/>
+        <tns:actionMapping actionId="CloneRestRequestAction" keyStroke="F9" iconPath="/clone.png"/>
         <tns:actionMapping actionId="RenameRestRequestAction" keyStroke="F2"/>
         <tns:actionMapping actionId="DeleteRestRequestAction" keyStroke="DELETE"/>
 
@@ -594,7 +596,7 @@
                            description="Shows the TestSuite Editor for this TestSuite" keyStroke="ENTER"/>
         <tns:actionMapping actionId="ToggleDisableTestSuiteAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
-        <tns:actionMapping actionId="AddNewTestCaseAction" keyStroke="menu N" iconPath="/testCase.gif"/>
+        <tns:actionMapping actionId="AddNewTestCaseAction" keyStroke="menu N" iconPath="/testcase.png"/>
         <tns:actionMapping actionId="CloneTestSuiteAction" keyStroke="F9"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="TestSuiteTestRunnerAction"/>
@@ -620,7 +622,7 @@
         <tns:actionMapping actionId="ShowDesktopPanelAction" name="Show TestCase Editor"
                            description="Shows the TestCase Editor for this TestCase" keyStroke="ENTER"/>
         <tns:actionMapping actionId="ToggleDisableTestCaseAction"/>
-        <tns:actionMapping actionId="TestCaseOptionsAction" keyStroke="menu shift O" iconPath="/options.gif"/>
+        <tns:actionMapping actionId="TestCaseOptionsAction" keyStroke="menu shift O" iconPath="/preferences.png"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping groupId="WsdlTestCaseAddStepActions" name="Add Step"/>
         <tns:actionMapping actionId="SeperatorAction"/>
@@ -781,7 +783,7 @@
         <tns:actionMapping actionId="ShowDesktopPanelAction" name="Show LoadTest Editor"
                            description="Shows the LoadTest Editor for this LoadTest" keyStroke="ENTER"/>
         <tns:actionMapping actionId="SeperatorAction"/>
-        <tns:actionMapping actionId="LoadTestOptionsAction" keyStroke="menu shift O" iconPath="/options.gif"/>
+        <tns:actionMapping actionId="LoadTestOptionsAction" keyStroke="menu shift O" iconPath="/preferences.png"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="LoadTestLoadTestRunnerAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
@@ -796,7 +798,7 @@
     <tns:actionGroup name="SecurityTest Actions" id="SecurityTestActions" default="ShowDesktopPanelAction">
         <tns:actionMapping actionId="ShowDesktopPanelAction" name="Show SecurityTest Editor"
                            description="Shows the SecurityTest Editor for this SecurityTest" keyStroke="ENTER"/>
-        <tns:actionMapping actionId="SecurityTestOptionsAction" keyStroke="menu shift O" iconPath="/options.gif"/>
+        <tns:actionMapping actionId="SecurityTestOptionsAction" keyStroke="menu shift O" iconPath="/preferences.png"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="SecurityTestSecurityTestRunnerAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>

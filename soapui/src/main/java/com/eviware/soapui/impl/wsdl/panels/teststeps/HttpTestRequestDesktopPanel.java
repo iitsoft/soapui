@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.panels.teststeps;
 
@@ -139,7 +139,7 @@ public class HttpTestRequestDesktopPanel extends
 
     @Override
     protected String getHelpUrl() {
-        return HelpUrls.TESTREQUESTEDITOR_HELP_URL;
+        return HelpUrls.HTTP_REQUEST_HELP_URL;
     }
 
     @Override
@@ -150,7 +150,7 @@ public class HttpTestRequestDesktopPanel extends
         assertionsPanel = buildAssertionsPanel();
 
         assertionInspector = new JComponentInspector<JComponent>(assertionsPanel, "Assertions ("
-                + getModelItem().getAssertionCount() + ")", "Assertions for this Test Request", true);
+                + getModelItem().getAssertionCount() + ")", "Assertions for this Request", true);
 
         inspectorPanel.addInspector(assertionInspector);
 
@@ -180,7 +180,7 @@ public class HttpTestRequestDesktopPanel extends
                 break;
             }
             case UNKNOWN: {
-                assertionInspector.setIcon(UISupport.createImageIcon("/unknown_assertion.gif"));
+                assertionInspector.setIcon(UISupport.createImageIcon("/unknown_assertion.png"));
                 break;
             }
             case VALID: {
@@ -324,7 +324,7 @@ public class HttpTestRequestDesktopPanel extends
 
     @Override
     protected Submit doSubmit() throws SubmitException {
-        Analytics.trackAction(SoapUIActions.RUN_TEST_STEP.getActionName(), "StepType", "HTTP");
+        Analytics.trackAction(SoapUIActions.RUN_TEST_STEP_FROM_PANEL, "StepType", "HTTP");
 
         return getRequest().submit(new WsdlTestRunContext(getModelItem()), true);
     }
@@ -434,6 +434,9 @@ public class HttpTestRequestDesktopPanel extends
         } else if (evt.getPropertyName().equals("path")) {
             getSubmitButton().setEnabled(getSubmit() == null && StringUtils.hasContent(getRequest().getEndpoint()));
         } else if (evt.getPropertyName().equals(AbstractHttpRequest.ENDPOINT_PROPERTY)) {
+            // fix SOAP-3369
+            getSubmitButton().setEnabled(getSubmit() == null && StringUtils.hasContent(getRequest().getEndpoint()));
+            // end of SOAP-3369
             if (updating) {
                 return;
             }

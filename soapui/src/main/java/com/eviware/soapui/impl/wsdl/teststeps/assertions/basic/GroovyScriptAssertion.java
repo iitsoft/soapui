@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.teststeps.assertions.basic;
 
@@ -26,9 +26,11 @@ import com.eviware.soapui.impl.wsdl.panels.mockoperation.WsdlMockResponseMessage
 import com.eviware.soapui.impl.wsdl.panels.teststeps.support.AbstractGroovyEditorModel;
 import com.eviware.soapui.impl.wsdl.panels.teststeps.support.GroovyEditor;
 import com.eviware.soapui.impl.wsdl.support.HelpUrls;
+import com.eviware.soapui.impl.wsdl.support.JdbcMessageExchange;
 import com.eviware.soapui.impl.wsdl.testcase.WsdlTestRunContext;
 import com.eviware.soapui.impl.wsdl.teststeps.HttpResponseMessageExchange;
 import com.eviware.soapui.impl.wsdl.teststeps.HttpTestRequestStepInterface;
+import com.eviware.soapui.impl.wsdl.teststeps.JdbcRequestTestStep;
 import com.eviware.soapui.impl.wsdl.teststeps.RestResponseMessageExchange;
 import com.eviware.soapui.impl.wsdl.teststeps.RestTestRequestStepInterface;
 import com.eviware.soapui.impl.wsdl.teststeps.WsdlMessageAssertion;
@@ -176,6 +178,38 @@ public class GroovyScriptAssertion extends WsdlMessageAssertion implements Reque
         setConfiguration(createConfiguration());
     }
 
+    @Override
+    public void release() {
+        super.release();
+        scriptEngine.release();
+
+        if (groovyScriptAssertionPanel != null) {
+            groovyScriptAssertionPanel.release();
+        }
+    }
+
+    public static class Factory extends AbstractTestAssertionFactory {
+        public Factory() {
+            super(GroovyScriptAssertion.ID, GroovyScriptAssertion.LABEL, GroovyScriptAssertion.class);
+        }
+
+        @Override
+        public String getCategory() {
+            return AssertionCategoryMapping.SCRIPT_CATEGORY;
+        }
+
+        @Override
+        public Class<? extends WsdlMessageAssertion> getAssertionClassType() {
+            return GroovyScriptAssertion.class;
+        }
+
+        @Override
+        public AssertionListEntry getAssertionListEntry() {
+            return new AssertionListEntry(GroovyScriptAssertion.ID, GroovyScriptAssertion.LABEL,
+                    GroovyScriptAssertion.DESCRIPTION);
+        }
+    }
+
     protected class GroovyScriptAssertionPanel extends JPanel {
         private GroovyEditor editor;
         private JSplitPane mainSplit;
@@ -316,7 +350,7 @@ public class GroovyScriptAssertion extends WsdlMessageAssertion implements Reque
 
         private class RunAction extends AbstractAction {
             public RunAction() {
-                putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run_groovy_script.gif"));
+                putValue(Action.SMALL_ICON, UISupport.createImageIcon("/run.png"));
                 putValue(Action.SHORT_DESCRIPTION,
                         "Runs this assertion script against the last messageExchange with a mock testContext");
             }
@@ -333,13 +367,21 @@ public class GroovyScriptAssertion extends WsdlMessageAssertion implements Reque
                     exchange = new HttpResponseMessageExchange(((HttpTestRequestStepInterface) testStep).getTestRequest());
                 } else if (testStep instanceof WsdlMockResponseTestStep) {
                     exchange = new WsdlMockResponseMessageExchange(((WsdlMockResponseTestStep) testStep).getMockResponse());
+                } else if (testStep instanceof JdbcRequestTestStep) {
+                    JdbcRequestTestStep jdbcRequestTestStep = (JdbcRequestTestStep) testStep;
+                    exchange = new JdbcMessageExchange(jdbcRequestTestStep, jdbcRequestTestStep.getJdbcRequest().getResponse());
                 }
 
                 try {
-                    setScriptText(editor.getEditArea().getText());
-                    String result = assertScript(exchange, new WsdlTestRunContext(testStep), logger);
-                    UISupport
-                            .showInfoMessage("Script Assertion Passed" + ((result == null) ? "" : ": [" + result + "]"));
+                    Logger groovyLog = SoapUI.ensureGroovyLog();
+                    logger.addAppender(groovyLog.getAppender("GLOBAL_GROOVY_LOG"));
+                    try {
+                        setScriptText(editor.getEditArea().getText());
+                        String result = assertScript(exchange, new WsdlTestRunContext(testStep), logger);
+                        UISupport.showInfoMessage("Script Assertion Passed" + ((result == null) ? "" : ": [" + result + "]"));
+                    } finally {
+                        logger.removeAppender("GLOBAL_GROOVY_LOG");
+                    }
                 } catch (AssertionException e) {
                     UISupport.showErrorMessage(e.getMessage());
                 } catch (Exception e) {
@@ -349,38 +391,6 @@ public class GroovyScriptAssertion extends WsdlMessageAssertion implements Reque
 
                 editor.requestFocusInWindow();
             }
-        }
-    }
-
-    @Override
-    public void release() {
-        super.release();
-        scriptEngine.release();
-
-        if (groovyScriptAssertionPanel != null) {
-            groovyScriptAssertionPanel.release();
-        }
-    }
-
-    public static class Factory extends AbstractTestAssertionFactory {
-        public Factory() {
-            super(GroovyScriptAssertion.ID, GroovyScriptAssertion.LABEL, GroovyScriptAssertion.class);
-        }
-
-        @Override
-        public String getCategory() {
-            return AssertionCategoryMapping.SCRIPT_CATEGORY;
-        }
-
-        @Override
-        public Class<? extends WsdlMessageAssertion> getAssertionClassType() {
-            return GroovyScriptAssertion.class;
-        }
-
-        @Override
-        public AssertionListEntry getAssertionListEntry() {
-            return new AssertionListEntry(GroovyScriptAssertion.ID, GroovyScriptAssertion.LABEL,
-                    GroovyScriptAssertion.DESCRIPTION);
         }
     }
 }

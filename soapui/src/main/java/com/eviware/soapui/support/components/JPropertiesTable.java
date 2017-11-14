@@ -1,18 +1,18 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.support.components;
 
@@ -82,20 +82,21 @@ public class JPropertiesTable<T> extends JPanel {
     public JPropertiesTable(String title, T propertyObject) {
         super(new BorderLayout());
         this.title = title;
-
+        setBackground(Color.WHITE);
         tableModel = new PropertiesTableModel<T>(propertyObject);
         table = new PTable(tableModel);
-
+        table.setBackground(Color.WHITE);
         table.getColumnModel().getColumn(0).setHeaderValue("Property");
         table.getColumnModel().getColumn(1).setHeaderValue("Value");
         table.getColumnModel().getColumn(0).setCellRenderer(new PropertiesTableCellRenderer());
         table.getColumnModel().getColumn(1).setCellRenderer(new PropertiesTableCellRenderer());
 
+
         add(new JScrollPane(table), BorderLayout.CENTER);
         titledBorder = BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), title);
         /*
 		 * Java 7 issue
-		 * 
+		 *
 		 * old: titledBorder.setTitleFont( titledBorder.getTitleFont().deriveFont(
 		 * Font.PLAIN, 11 ) ); titledBorder.getTitleFont() return null in Java 7
 		 */

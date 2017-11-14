@@ -1,23 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.teststeps.registry;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import com.eviware.soapui.config.RestRequestConfig;
 import com.eviware.soapui.config.RestRequestStepConfig;
@@ -39,6 +36,9 @@ import com.eviware.soapui.support.StringUtils;
 import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.types.TupleList;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Factory for WsdlTestRequestSteps
  *
@@ -53,8 +53,8 @@ public class RestRequestStepFactory extends WsdlTestStepFactory {
     // private StringToStringMap dialogValues = new StringToStringMap();
 
     public RestRequestStepFactory() {
-        super(RESTREQUEST_TYPE, "REST Test Request", "Submits a REST-style Request and validates its response",
-                "/rest_request.gif");
+        super(RESTREQUEST_TYPE, "REST Request", "Submits a REST-style Request and validates its response",
+                "/rest_request_step.png");
     }
 
     public static class ItemDeletedException extends Exception {
@@ -82,7 +82,6 @@ public class RestRequestStepFactory extends WsdlTestStepFactory {
         testStep.setType(RESTREQUEST_TYPE);
         testStep.setConfig(requestStepConfig);
         testStep.setName(stepName);
-
         return testStep;
     }
 
@@ -176,7 +175,6 @@ public class RestRequestStepFactory extends WsdlTestStepFactory {
         testStepConfig.setType(RESTREQUEST_TYPE);
         testStepConfig.setConfig(requestStepConfig);
         testStepConfig.setName(name);
-
         return testStepConfig;
     }
 

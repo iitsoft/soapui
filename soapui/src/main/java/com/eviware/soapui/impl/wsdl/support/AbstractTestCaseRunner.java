@@ -1,27 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.support;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.collections.list.TreeList;
-import org.apache.http.protocol.BasicHttpContext;
 
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.impl.wsdl.support.http.HttpClientSupport;
@@ -36,6 +29,12 @@ import com.eviware.soapui.model.testsuite.TestStep;
 import com.eviware.soapui.model.testsuite.TestStepResult;
 import com.eviware.soapui.model.testsuite.TestStepResult.TestStepStatus;
 import com.eviware.soapui.support.types.StringToObjectMap;
+import org.apache.commons.collections.list.TreeList;
+import org.apache.http.protocol.BasicHttpContext;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Abstract runner class - runs all steps in a TestCase or a SecurityTest and
@@ -209,7 +208,6 @@ public abstract class AbstractTestCaseRunner<T extends TestRunnable, T2 extends 
         if (!runBeforeSteps(testStep)) {
             return null;
         }
-
         TestStepResult stepResult = testStep.run(this, getRunContext());
 
         testStepResults.add(stepResult);
@@ -228,7 +226,7 @@ public abstract class AbstractTestCaseRunner<T extends TestRunnable, T2 extends 
         // discard?
         // if( discard && stepResult.getStatus() == TestStepStatus.OK &&
         // getTestRunnable().getDiscardOkResults()
-        if (discard && stepResult.getStatus() == TestStepStatus.OK && getTestCase().getDiscardOkResults()
+        if (discard && stepResult.getStatus() != TestStepStatus.FAILED && getTestCase().getDiscardOkResults()
                 && !stepResult.isDiscarded()) {
             stepResult.discard();
         }
@@ -306,14 +304,15 @@ public abstract class AbstractTestCaseRunner<T extends TestRunnable, T2 extends 
     public abstract WsdlTestCase getTestCase();
 
     public long getTimeTaken() {
+        if(isRunning()){
+            return System.currentTimeMillis() - getStartTime();
+        }
         long sum = 0;
-        for (int c = 0; c < testStepResults.size(); c++) {
-            TestStepResult testStepResult = testStepResults.get(c);
+        for (TestStepResult testStepResult : testStepResults) {
             if (testStepResult != null) {
                 sum += testStepResult.getTimeTaken();
             }
         }
-
         return sum;
     }
 

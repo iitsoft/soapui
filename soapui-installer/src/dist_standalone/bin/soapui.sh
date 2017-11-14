@@ -34,7 +34,12 @@ if [ -f "$SOAPUI_HOME/jre/bin/java" ]
 then
   JAVA=$SOAPUI_HOME/jre/bin/java
 else
-  JAVA=java
+    if [ -f "$SOAPUI_HOME/../../PlugIns/jre.bundle/Contents/Home/jre/bin/java" ]
+    then
+        JAVA=$SOAPUI_HOME/../../PlugIns/jre.bundle/Contents/Home/jre/bin/java
+    else
+        JAVA=java
+    fi
 fi
 
 SOAPUI_CLASSPATH=$SOAPUI_HOME/bin/${project.src.artifactId}-${project.version}.jar:$SOAPUI_HOME/lib/*
@@ -43,7 +48,7 @@ SOAPUI_CLASSPATH=$JFXRTPATH:$SOAPUI_CLASSPATH
 
 export SOAPUI_CLASSPATH
 
-JAVA_OPTS="-Xms128m -Xmx1024m -Dsoapui.properties=soapui.properties -Dgroovy.source.encoding=iso-8859-1 -Dsoapui.home=$SOAPUI_HOME/bin -splash:soapui-splash.png"
+JAVA_OPTS="-Xms128m -Xmx1024m -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -Dsoapui.properties=soapui.properties -Dgroovy.source.encoding=iso-8859-1 -Dsoapui.home=$SOAPUI_HOME/bin -splash:SoapUI-Spashscreen.png"
 
 if $darwin
 then

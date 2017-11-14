@@ -1,33 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.support.wss.entries;
-
-import java.awt.BorderLayout;
-
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-
-import org.apache.ws.security.message.WSSecHeader;
-import org.apache.ws.security.message.WSSecSAMLToken;
-import org.apache.ws.security.saml.ext.AssertionWrapper;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rtextarea.RTextScrollPane;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.config.WSSEntryConfig;
@@ -41,6 +28,18 @@ import com.eviware.soapui.support.xml.SyntaxEditorUtil;
 import com.eviware.soapui.support.xml.XmlObjectConfigurationBuilder;
 import com.eviware.soapui.support.xml.XmlObjectConfigurationReader;
 import com.eviware.soapui.support.xml.XmlUtils;
+import org.apache.ws.security.WSConstants;
+import org.apache.ws.security.message.WSSecHeader;
+import org.apache.ws.security.message.WSSecSAMLToken;
+import org.apache.ws.security.saml.ext.AssertionWrapper;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.RTextScrollPane;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
 
 /**
  * @author Erik R. Yverling
@@ -103,7 +102,12 @@ public class ManualSAMLEntry extends WssEntryBase {
         }
 
         try {
-            Document samlAssertionDOM = XmlUtils.parseXml(XmlUtils.stripWhitespaces(context.expand(samlAssertion)));
+            String samlAssertionValue = context.expand(samlAssertion);
+            // don't strip white space if the SAML assertion is signed because it will break the signature
+            if (!(samlAssertionValue != null && samlAssertionValue.contains(WSConstants.SIG_NS) && samlAssertionValue.contains("SignatureValue"))) {
+                samlAssertionValue = XmlUtils.stripWhitespaces(samlAssertionValue);
+            }
+            Document samlAssertionDOM = XmlUtils.parseXml(samlAssertionValue);
             Element samlAssertionRootElement = samlAssertionDOM.getDocumentElement();
             AssertionWrapper assertion = new AssertionWrapper(samlAssertionRootElement);
             WSSecSAMLToken wsSign = new WSSecSAMLToken();

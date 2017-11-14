@@ -1,5 +1,237 @@
-# SoapUI 5.1.0
+﻿# SoapUI Open Source 5.3.0
+
+#### Released 2016-11-30 ####
+
+### Improvements ###
+
+* Support for OAuth 1 authentication.   (SOAPUIOS-194)
+
+* Improved support for OAuth 2. SoapUI now supports two additional grant types: Resource Owner Password Credentials and Client Credentials. (SOAPUIOS-60)
+
+* A new feature by Krzysztof Baranski (krzysbaranski in GitHub): Support for Server Name Indication (SNI) in TLS/SSL requests. (SOAPUIOS-218)
+
+* A new feature by Bouke Nijhuis (BoukeNijhuis in GitHub): The XQuery Match assertion now supports the "Ignore namespace prefix" and "Ignore XML Comments" options. (SOAPUIOS-210)
+
+* A new feature by Kyle Smith (smithk86 in GitHub): The Set Endpoint dialog now displays endpoints in alphabetical order. (SOAPUIOS-212)
+
+Many thanks to Krzysztof, Bouke and Kyle for their efforts!
+
+* The design of some buttons has been updated. (SOAPUIOS-209)
+
+* The SoapUI icon on Mac OS X has been updated. (SOAPUIOS-90)
+
+### Bundled Plugin ###
+
+* The Postman plugin is now included in the SoapUI installation package. You use this plugin to import Postman collections and tests to SoapUI.  (SOAPUIOS-208)
+
+### Bug Fixes ###
+
+* TestRunner displayed the "Usage statistics" dialog upon starting. To close this dialog, you had to click any button in it, which was inconvenient for automated test runs. (SOAPUIOS-188)
+
+* The JDBC Request test step converted all SQL column names in responses to upper case.  This could cause issues when comparing the response contents with baseline data. (SOAPUIOS-190)
+
+* The SLA assertion did not support property expansions. (SOAPUIOS-195)
+
+* It was impossible to send requests to a secured web service through a proxy server. The simulated requests did not contain the proxy user credentials. (SOAPUIOS-196, SOAPUIOS-199)
+
+* The Groovy Script assertion called by the JDBC Request test step always returned an error "null". (SOAPUIOS-200)
+
+* The context menu of the XML editor had duplicated "Select All" items. (SOAPUIOS-201)
+
+* The Properties test step failed to load the properties, whose names ended with a backslash (\), from a file. (SOAPUIOS-202)
+
+* A NoSuchMethodException exception could occur when creating a project from WSDL. (SOAPUIOS-204)
+
+* A bug fix by Bouke Nijhuis (BoukeNijhuis in GitHub): In certain cases, the Recently Used tab could disappear from the Assertions dialog. (SOAPUIOS-211). 
+
+* A bug fix by bearsoftware (GitHub nickname): The Request  URL property of the HTTP Request test step did not allow capital letters. (SOAPUIOS-213)
+
+* A bug fix by kekemonster (GitHub nickname): Multiple concurrent requests to a mock service could cause the HTTP 500 error. (SOAPUIOS-215)
+
+Many thanks to Bouke Nijhuis, bearsoftware and kekemonster for contribution!
+
+-------------------------------------------------------------------------------
+
+# SoapUI Open Source 5.2.1
+
+#### Released 2015-10-02 ####
+
+* A new bundled SwaggerHub plugin that helps you easily import Swagger API definitions from SwaggerHub to your project and to export your APIs to SwaggerHub. (SOAPUIOS-152)
+  For information on SwaggerHub, see http://smartbear.com/product/swaggerhub/overview/.
+  More information on the plugin is available at https://github.com/SmartBear/readyapi-swaggerhub-plugin.
+
+* More efficient memory usage. (SOAPUIOS-154)
+
+* A new feature by Stanislaw Wozniak (a GitHub user with the nickname sponte): The test runner has a new setting that commands SoapUI to export test case properties to JUnit-style reports. You can find the new “Export JUnit Results with test properties” check box on the Reports tab of the dialog, in which you specify the test runner's properties before the run. To enable this functionality from the command line, use the new -J command-line argument. (SOAPUIOS-156)
+
+* A bug fix by Marc Paquette (marcpa00 in GitHub): Earlier versions of SoapUI doubled messages sent to the console log from Groovy code. Marc has fixed this. (SOAPUIOS-157)
+
+Many thanks to Stanislaw and Marc for their efforts!
+
+*  More bug fixes:
+    - The UXM AlertSite plugin did not add the "Monitor APIs" item to the product’s menu. (SOAPUIOS-166)
+    - An error ("Access mode for wsi-test-tools scripts couldn't be set") could occur when installing the product on Linux. (SOAPUIOS-161)
+    - Running WS-I Compliance for a SOAP service could cause an exception. (SOAPUIOS-158)
+
+-------------------------------------------------------------------------------
+
+# SoapUI Open Source 5.2
+
+#### Released 2015-07-02 ####
+
+### Major New Features ###
+
+* You can use 4 new JSONPath-based assertions:
+   - JsonPath Count           - Calculates the number of element occurrences in a JSON response.
+   - JsonPath Existence Match - Extracts data from a JSON response and compares it with an expected value.
+   - JsonPath Match           - Checks if a JSON response contains specific node.
+   - JsonPath RegEx Match     - Extracts data from a JSON response and verifies it with a regular expression.
+  You can find the new assertions in the Add Assertions dialog, in the Property Content assertion group.
+* You can create new empty projects (in earlier versions, projects had to be based on WSDL or WADL, or URI).
+
+### Improvements ###
+
+* New look inspired by ReadyAPI.
+* Support for Java 6 has been dropped. 
+  To run SoapUI, now you need to have Java 7 on your computer.
+  The SoapUI installation package includes Java 7 modules, 
+  so if you use the installer, you do not have to download and install additional files.
+* Old-style icons have been replaced with newer icons.
+
+### Bundled Plugins ###
+
+The SoapUI installation package includes the following plugins:
+* MQTT plugin - Enables IOT testing of MQTT services.
+* Swagger plugin - Enables loading and saving of Swagger interface descriptions.
+* AlertSite UXM plugin - Enables distributed monitoring of APIs.
+
+### Bugs Fixed ###
+
+* The JMS Timeout assertion did not work.
+* SoapUI failed to find attachments specified by 'xop:Include href'.
+* SoapUI failed to load plugins when you run tests with testrunner.bat and the current directory differed from <SoapUI>\bin.
+* The "Help > Privacy Policy" menu item did not open any web page. Now it opens http://www.soapui.org/Store-Info/privacy-policy.html.
+* In the Property Transfer test step editor, it was possible to add two items with the same name to the Transfers list.
+* When you resized the "Contain" assertion edit window, the text in that window did not resize appropriately.
+* The Overview tab of the REST Interface editor displayed "WSDL Definition" instead of "WADL Definition".
+* There was a misprint in the SoapUI Preferences > WSDL Settings screen.
+
+-------------------------------------------------------------------------------
+
+# SoapUI OS 5.2 - BETA
+
+#### Released 2015-06-10 ####
+
+### Major new features ###
+
+* JSON Path based assertions
+* Create empty project
+
+### Improvements ###
+
+* Old style icons replaced with new
+* SoapUI OS GUI more similar to ReadyAPI
+
+### Bugs fixed ###
+
+* Contain assertion text window cannot resize
+* JMS timeout assertion is broken
+* REST Interface window reads "WSDL Definition" instead of "WADL Definition"
+* SoapUI can't find the attachment using the `xop:Include href`
+* SoapUI doesn't load plugins when running `testrunner.bat` from another directory
+* Typo to on WSDL Settings screen
+
+
+-------------------------------------------------------------------------------
+
+# SoapUI OS 5.1.3
+#### Released 2015-04-01 ####
+
+### Bugs fixed ###
+* Removed version conflict affecting Maven builds
+
+-------------------------------------------------------------------------------
+
+# SoapUI OS 5.1.2
+#### Released 2015-03-11 ####
+
+### Major new features ###
+* In-app analytics as in SoapUI Pro
+* Contact information for users
+* JSON enhancements
+* Auto update of SoapUI
+
+### Improvements ###
+* JSON Property Transfer (SOAP-2279)
+* Get Data support in JSON tree (SOAP-2280)
+
+### Bugs fixed ###
+* Select directory window hangs on Preference->Tools page (SOAP-3318)
+* Mock as war uses external library system property
+* Loglist selection visibility on mac
+* LogListModel cast exception on clear
+* Mock as war doesn't create dir structure
+* NPE when loading old style plugins
+* Memory fix issues for requests returning large file content (SOAP-2130)
+* Use bundled JRE when running .sh files from installed SoapUI on mac (SOAP-1951)
+* Content of properties value are not update after load them (SOAP-3306)
+* Incorrect or broken help links (SOAP-3381)
+* "Play" button in "HTTP Request" editor window is not enabled (SOAP-3369)
+* AMF Request allows you to run test without endpoint (SOAP-3368)
+* Wrong help link in "AMF Request" test step window (SOAP-3367)
+* NullPointerException when cancel import packed project (SOAP-3364)
+* Wrong assertion content in sample project (SOAP-3312)
+* The "NullPointerException" error occurs when running servlet "MockAsWarServlet" (SOAP-3315)
+* Soap UI OS hangs when trying to deploy mock service as WAR (SOAP-3310)
+
+### Updated libraries ###
+* Introduced analytics-core-5.1.2-os
+* Updated hamcrest-core-1.3
+* Introduced i4jruntime-5.1.14
+* Introduced json-smart-1.2
+* Introduced out-app-analytics-provider-5.1.2-os
+* Updated wss4j-1.6.16
+
+-------------------------------------------------------------------------------
+
+# SoapUI Pro 5.1.2
+#### Released 2014-08-29 ####
+
+### Bugs fixed ###
+* (Pro only) SoapUI pro 5.1.1 excel files dates stamp cannot be read (SOAP-2754)
+* (Pro only) SoapUI displays an error and closes on leaving SoapUI idle for sometime (SOAP-2759)
+* (Pro only) empty rows in excel stop a data driven test (SOAP-2741)
+* (Pro only) Cloned assertion test step breaks in testcase export/import (SOAP-2715)
+* (Pro only) Composite projects containing multiple REST resources with the same name breaks when saving (SOAP-1874)
+* (Pro only) Folder names get random characters (SOAP-2686)
+* (Pro only) 5.1 regression: Excel spreadsheets that use forumulas fail in datasource test step (SOAP-2717)
+* (Pro only) Trial license activated on 5.0.0 throws already activated message for 5.1.0 (SOAP-2700)
+* (support case escalation) New composite project format - different hashtags generated for each person causes Source Control issues (SOAP-2703)
+* REST Discovery of soapui.org hangs SoapUI (SOAP-2722)
+* 'Apply For Trial' link is broken (SOAP-2762)
+* Trial activation issues solved (SOAP-2784)
+
+-------------------------------------------------------------------------------
+
+# SoapUI Pro 5.1.1
+#### Released 2014-07-30 ####
+#### Please note that version 5.1.1 is a Pro only release. This means the features and improvements below are currently available only in SoapUI Pro. ####
+
+### Bugs fixed ###
+* Fixed not being able to reconfigure cloned Assertion TestSteps (SOAP-709)
+* The RequestFilter.filterRequest event handler now works correctly again (SOAP-2708)
+* Fixed an issue where JSON Payloud escaped input incorrectly (SOAP-2710)
+* Fixed an issue with property transfer test steps created with older versions (SOAP-2713)
+* Fixed an issue where the "Get Data..." menu option showed up incorrectly in some places (SOAP-2714)
+
+### Improvements ###
+* Trying to apply a renewal license to a fresh installation of SoapUI now results in an explanation dialog (SOAP-2704)
+
+-------------------------------------------------------------------------------
+
+# SoapUI Pro 5.1.0
 #### Released 2014-07-15 ####
+#### Please note that version 5.1.0 is a Pro only release. This means the features and improvements below are currently available only in SoapUI Pro.
 
 ### Major new features ###
 * (Pro only) New plugin manager to easily find and install/update SoapUI Pro plugins from a central repository
@@ -52,6 +284,13 @@
 * Introduced jcr 1.0
 * (Pro only) Replaced jexcelapi with Apache POI
 
+-------------------------------------------------------------------------------
+
+# SoapUI 5.0.1
+#### Released only JAR for LoadUI release, no installers: 2014-05-27 ####
+
+### Bugs fixed ###
+* Mock Response test step fails (SOAP-2207)
 -------------------------------------------------------------------------------
 
 # SoapUI 5.0.0

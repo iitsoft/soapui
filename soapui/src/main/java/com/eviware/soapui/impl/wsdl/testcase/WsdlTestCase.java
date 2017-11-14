@@ -1,23 +1,24 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.impl.wsdl.testcase;
 
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.analytics.Analytics;
+import com.eviware.soapui.analytics.SoapUIActions;
 import com.eviware.soapui.config.LoadTestConfig;
 import com.eviware.soapui.config.SecurityTestConfig;
 import com.eviware.soapui.config.TestCaseConfig;
@@ -84,7 +85,7 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
     public final static String TEARDOWN_SCRIPT_PROPERTY = WsdlTestCase.class.getName() + "@tearDownScript";
     public static final String TIMEOUT_PROPERTY = WsdlTestCase.class.getName() + "@timeout";
     public static final String SEARCH_PROPERTIES_PROPERTY = WsdlTestCase.class.getName() + "@searchProperties";
-    public static final String ICON_NAME = "/testCase.gif";
+    public static final String ICON_NAME = "/testcase.png";
 
     private final WsdlTestSuite testSuite;
     private final List<WsdlTestStep> testSteps = new ArrayList<WsdlTestStep>();
@@ -397,7 +398,7 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
     }
 
     public WsdlTestStep addTestStep(TestStepConfig stepConfig) {
-        return insertTestStep(stepConfig, -1, true);
+        return insertTestStep(null, stepConfig, -1, true);
     }
 
     public WsdlTestStep addTestStep(String type, String name) {
@@ -429,7 +430,7 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
         if (testStepFactory != null) {
             TestStepConfig newStepConfig = testStepFactory.createNewTestStep(this, name);
             if (newStepConfig != null) {
-                return insertTestStep(newStepConfig, index, false);
+                return insertTestStep(null, newStepConfig, index, false);
             }
         }
 
@@ -441,7 +442,7 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
         TestStepConfig newStepConfig = (TestStepConfig) testStep.getConfig().copy();
         newStepConfig.setName(name);
 
-        WsdlTestStep result = insertTestStep(newStepConfig, index, createCopy);
+        WsdlTestStep result = insertTestStep(testStep.getTestCase(), newStepConfig, index, createCopy);
         if (result == null) {
             return null;
         }
@@ -460,7 +461,7 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
         resolver.resolve(this);
     }
 
-    public WsdlTestStep[] importTestSteps(WsdlTestStep[] testSteps, int index, boolean createCopies) {
+    public WsdlTestStep[] importTestSteps(WsdlTestCase oldTestCase, WsdlTestStep[] testSteps, int index, boolean createCopies) {
         TestStepConfig[] newStepConfigs = new TestStepConfig[testSteps.length];
 
         for (int c = 0; c < testSteps.length; c++) {
@@ -468,17 +469,17 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
             newStepConfigs[c] = (TestStepConfig) testSteps[c].getConfig().copy();
         }
 
-        WsdlTestStep[] result = insertTestSteps(newStepConfigs, index, createCopies);
+        WsdlTestStep[] result = insertTestSteps(oldTestCase, newStepConfigs, index, createCopies);
 
         resolveTestCase();
         return result;
     }
 
     public WsdlTestStep insertTestStep(TestStepConfig stepConfig, int ix) {
-        return insertTestStep(stepConfig, ix, true);
+        return insertTestStep(null, stepConfig, ix, true);
     }
 
-    public WsdlTestStep insertTestStep(TestStepConfig stepConfig, int ix, boolean clearIds) {
+    public WsdlTestStep insertTestStep(WsdlTestCase oldTestCase, TestStepConfig stepConfig, int ix, boolean clearIds) {
         TestStepConfig newStepConfig = ix == -1 ? getConfig().addNewTestStep() : getConfig().insertNewTestStep(ix);
         newStepConfig.set(stepConfig);
         WsdlTestStep testStep = createTestStepFromConfig(newStepConfig);
@@ -501,18 +502,19 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
 
         testStep.afterLoad();
 
+        WsdlTestSuite oldTestSuite = oldTestCase == null ? null : oldTestCase.getTestSuite();
+        testStep.afterCopy(oldTestSuite, oldTestCase);
+
         if (getTestSuite() != null) {
             (getTestSuite()).fireTestStepAdded(testStep, ix == -1 ? testSteps.size() - 1 : ix);
         }
 
         notifyPropertyChanged("testSteps", null, testStep);
 
-        Analytics.trackAction("AddRequestToTestCase", "Type", testStep.getClass().getSimpleName());
-
         return testStep;
     }
 
-    public WsdlTestStep[] insertTestSteps(TestStepConfig[] stepConfig, int ix, boolean clearIds) {
+    public WsdlTestStep[] insertTestSteps(WsdlTestCase oldTestCase, TestStepConfig[] stepConfig, int ix, boolean clearIds) {
         WsdlTestStep[] result = new WsdlTestStep[stepConfig.length];
 
         for (int c = 0; c < stepConfig.length; c++) {
@@ -540,7 +542,7 @@ public class WsdlTestCase extends AbstractTestPropertyHolderWsdlModelItem<TestCa
 
         for (int c = 0; c < result.length; c++) {
             result[c].afterLoad();
-
+            result[c].afterCopy(oldTestCase.getTestSuite(), oldTestCase);
             if (getTestSuite() != null) {
                 (getTestSuite()).fireTestStepAdded(result[c], getIndexOfTestStep(result[c]));
             }

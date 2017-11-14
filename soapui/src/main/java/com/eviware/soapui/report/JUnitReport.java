@@ -1,28 +1,20 @@
 /*
- * Copyright 2004-2014 SmartBear Software
+ * SoapUI, Copyright (C) 2004-2016 SmartBear Software 
  *
- * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent
- * versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- * http://ec.europa.eu/idabc/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the Licence is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the Licence for the specific language governing permissions and limitations
- * under the Licence.
-*/
+ * Licensed under the EUPL, Version 1.1 or - as soon as they will be approved by the European Commission - subsequent 
+ * versions of the EUPL (the "Licence"); 
+ * You may not use this work except in compliance with the Licence. 
+ * You may obtain a copy of the Licence at: 
+ * 
+ * http://ec.europa.eu/idabc/eupl 
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the Licence is 
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+ * express or implied. See the Licence for the specific language governing permissions and limitations 
+ * under the Licence. 
+ */
 
 package com.eviware.soapui.report;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.xmlbeans.XmlOptions;
 
 import com.eviware.soapui.junit.FailureDocument.Failure;
 import com.eviware.soapui.junit.Properties;
@@ -30,6 +22,13 @@ import com.eviware.soapui.junit.Property;
 import com.eviware.soapui.junit.Testcase;
 import com.eviware.soapui.junit.Testsuite;
 import com.eviware.soapui.junit.TestsuiteDocument;
+import org.apache.xmlbeans.XmlOptions;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Wrapper for a number of Test runs
@@ -42,6 +41,8 @@ public class JUnitReport {
     StringBuffer systemOut;
     StringBuffer systemErr;
 
+    boolean includeTestProperties;
+
     public JUnitReport() {
         systemOut = new StringBuffer();
         systemErr = new StringBuffer();
@@ -50,6 +51,10 @@ public class JUnitReport {
         Testsuite testsuite = testsuiteDoc.addNewTestsuite();
         Properties properties = testsuite.addNewProperties();
         setSystemProperties(properties);
+    }
+
+    public void setIncludeTestProperties(boolean includeTestProperties) {
+        this.includeTestProperties = includeTestProperties;
     }
 
     public void setTotalTime(double time) {
@@ -88,16 +93,27 @@ public class JUnitReport {
         testsuiteDoc.getTestsuite().setSystemErr(systemerr);
     }
 
-    public Testcase addTestCase(String name, double time) {
+    public Testcase addTestCase(String name, double time, HashMap<String, String> testProperties) {
         Testcase testcase = testsuiteDoc.getTestsuite().addNewTestcase();
         testcase.setName(name);
         testcase.setTime(String.valueOf(time / 1000));
         noofTestCases++;
         totalTime += time;
+
+        setTestProperties(testProperties, testcase);
+
         return testcase;
     }
 
-    public Testcase addTestCaseWithFailure(String name, double time, String failure, String stacktrace) {
+    private void setTestProperties(HashMap<String, String> testProperties, Testcase testcase) {
+        if(!this.includeTestProperties)
+            return;
+
+        com.eviware.soapui.junit.Properties properties = testcase.addNewProperties();
+        setProperties(properties, testProperties);
+    }
+
+    public Testcase addTestCaseWithFailure(String name, double time, String failure, String stacktrace, HashMap<String, String> testProperties) {
         Testcase testcase = testsuiteDoc.getTestsuite().addNewTestcase();
         testcase.setName(name);
         testcase.setTime(String.valueOf(time / 1000));
@@ -108,10 +124,13 @@ public class JUnitReport {
         noofTestCases++;
         noofFailures++;
         totalTime += time;
+
+        setTestProperties(testProperties, testcase);
+
         return testcase;
     }
 
-    public Testcase addTestCaseWithError(String name, double time, String error, String stacktrace) {
+    public Testcase addTestCaseWithError(String name, double time, String error, String stacktrace, HashMap<String, String> testProperties) {
         Testcase testcase = testsuiteDoc.getTestsuite().addNewTestcase();
         testcase.setName(name);
         testcase.setTime(String.valueOf(time / 1000));
@@ -122,6 +141,9 @@ public class JUnitReport {
         noofTestCases++;
         noofErrors++;
         totalTime += time;
+
+        setTestProperties(testProperties, testcase);
+
         return testcase;
     }
 
@@ -133,6 +155,14 @@ public class JUnitReport {
             Property prop = properties.addNewProperty();
             prop.setName(key);
             prop.setValue(value);
+        }
+    }
+
+    private void setProperties(Properties properties, HashMap<String, String> propertiesToSet) {
+        for (Map.Entry<String, String> stringStringEntry : propertiesToSet.entrySet()) {
+            Property prop = properties.addNewProperty();
+            prop.setName(stringStringEntry.getKey());
+            prop.setValue(stringStringEntry.getValue());
         }
     }
 
